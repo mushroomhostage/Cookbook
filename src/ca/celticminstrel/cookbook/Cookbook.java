@@ -60,8 +60,8 @@ public class Cookbook extends JavaPlugin {
 			// TODO: Generate defaults
 			config.save();
 		}
-		//if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
-		//else haveSpout = false;
+		if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
+		else haveSpout = false;
 		loadRecipes();
 		if(plugin == null) registerListeners();
 		plugin = this;
@@ -77,7 +77,7 @@ public class Cookbook extends JavaPlugin {
 	}
 
 	public static void debug(String string) {
-		//log.info("[DEBUG] [Cookbook] " + string);
+		log.info("[DEBUG] [Cookbook] " + string);
 	}
 	
 	private void registerListeners() {
@@ -93,6 +93,17 @@ public class Cookbook extends JavaPlugin {
 			items.setItemName(Material.DOUBLE_STEP, "Double Stone Slab");
 			items.setItemName(Material.LONG_GRASS, "Long Grass");
 			items.setItemName(Material.DEAD_BUSH, "Dead Shrub");
+			// Toolbar
+			short toolbar = 127;
+			items.setItemName(Material.COMPASS, toolbar, "Navigate");
+			items.setItemName(Material.STONE, toolbar, "Basic Blocks");
+			items.setItemName(Material.CHEST, toolbar, "Containers");
+			items.setItemName(Material.SAPLING, toolbar, "Plants");
+			items.setItemName(Material.RAILS, toolbar, "Mechanisms");
+			items.setItemName(Material.WOOD_PICKAXE, toolbar, "Tools");
+			items.setItemName(Material.LEATHER_HELMET, toolbar, "Armour and Weapons");
+			items.setItemName(Material.APPLE, toolbar, "Food");
+			items.setItemName(Material.GREEN_RECORD, toolbar, "Misc");
 		}
 	}
 	

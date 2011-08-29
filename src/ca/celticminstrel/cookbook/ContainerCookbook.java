@@ -8,7 +8,6 @@ import java.util.List;
 import org.bukkit.Material;
 import static org.bukkit.Material.*;
 import org.bukkit.craftbukkit.inventory.CraftInventory;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -19,7 +18,6 @@ import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.inventory.InventoryBuilder;
 
 import net.minecraft.server.Block;
-import net.minecraft.server.Container;
 import net.minecraft.server.ContainerWorkbench;
 import net.minecraft.server.EntityHuman;
 import net.minecraft.server.EntityPlayer;
@@ -130,11 +128,11 @@ public class ContainerCookbook extends ContainerWorkbench {
 		InventoryBuilder build = SpoutManager.getInventoryBuilder();
 		toolbar = (CraftInventory)build.construct(36, "Cookbook");
 		// Navigation; right-click will be "next" and left-click will be "previous"
-		toolbar.setItem(0, new ItemStack(Material.COMPASS));
+		toolbar.setItem(0, new ItemStack(Material.COMPASS,0,(short)127));
 		// Group selections;
 		ItemGroup[] groups = ItemGroup.values();
 		for(int i = 0; i < groups.length; i++)
-			toolbar.setItem(i + 1, new ItemStack(groups[i].getIcon()));
+			toolbar.setItem(i + 1, new ItemStack(groups[i].getIcon(),0,(short)127));
 		// The group itself
 		setGroup(ItemGroup.BLOCK);
 	}
@@ -144,11 +142,12 @@ public class ContainerCookbook extends ContainerWorkbench {
 		int i = 9;
 		for(Material item : group) {
 			if(item != null) toolbar.setItem(i, new ItemStack(item));
+			else toolbar.setItem(i, null);
 			i++;
 		}
 	}
 	
-	public void cycleData(int slot, boolean upwards) {
+	public ItemStack cycleData(int slot, boolean upwards) {
 		if(slot < 9 || slot >= 27) throw new IllegalArgumentException("can't cycle data in slot " + slot);
 		ItemStack stack = toolbar.getItem(slot);
 		short dmg = stack.getDurability();
@@ -160,15 +159,17 @@ public class ContainerCookbook extends ContainerWorkbench {
 		stack.setDurability(dmg);
 		toolbar.setItem(slot, stack); // probably not needed
 		super.a();
+		return stack;
 	}
 	
 	public void cycleRecipe(boolean upwards) {
-		currentRecipe++;
+		if(upwards) currentRecipe++; else currentRecipe--;
 		Recipe recipe = cookbook.getRecipe(currentRecipe);
 		if(recipe == null) {
 			currentRecipe = upwards ? 0 : cookbook.numRecipes() - 1;
 			recipe = cookbook.getRecipe(currentRecipe);
 		}
+		for(int i = 0; i < 9; i++) matrix.setItem(i, null);
 		if(recipe instanceof ShapedRecipe) {
 			ShapedRecipe shaped = (ShapedRecipe)recipe;
 			String[] shape = shaped.getShape();
@@ -190,9 +191,10 @@ public class ContainerCookbook extends ContainerWorkbench {
 		} else if(recipe instanceof FurnaceRecipe) {
 			FurnaceRecipe smelt = (FurnaceRecipe)recipe;
 			matrix.setItem(1, mcStackFromMD(smelt.getInput()));
-			matrix.setItem(4, new net.minecraft.server.ItemStack(Material.BURNING_FURNACE.getId(), 0, 0));
-			result.setItem(0, mcStackFromIS(smelt.getResult()));
+			matrix.setItem(4, new net.minecraft.server.ItemStack(Material.FIRE.getId(), 0, 0));
+			matrix.setItem(8, new net.minecraft.server.ItemStack(Material.BURNING_FURNACE.getId(), 0, 0));
 		}
+		result.setItem(0, mcStackFromIS(recipe.getResult()));
 		super.a();
 	}
 
