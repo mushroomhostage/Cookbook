@@ -1,0 +1,5 @@
+name: Cookbook
+main: ca.celticminstrel.cookbook.Cookbook
+version: 1.0
+author: Celtic Minstrel
+softdepend: [Spout]

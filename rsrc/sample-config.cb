@@ -1,0 +1,13 @@
+# Rename me to recipes.cb, otherwise Cookbook won't read me
+
+@Shaped  # Make an iron bar!
+dirt dirt
+AIR dirt #Whee!
+-> 2x IRON_INGOT
+
+@Smelt
+Dirt -> 3x Wheat
+
+@Shapeless
+Apple, Bowl
+-> 1x Water-bucket

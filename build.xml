@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Cookbook" default="build" basedir=".">
+	<property name="rsrc" value="rsrc/"/>
+	<property name="src" value="src/"/>
+	<property name="lib" value="../lib/"/>
+	<property name="build" value="build/classes"/>
+	<property name="jar" value="build/jar"/>
+	<property name="dist" value="build/dist"/>
+
+	
+	<loadfile srcFile="${rsrc}/plugin.yml" property="version">
+		<filterchain>
+			<linecontainsregexp>
+				<regexp pattern="^version:\s*.*$"/>
+			</linecontainsregexp>
+			<tokenfilter>
+				<replaceregex pattern="^version:\s*(.*)$" replace="\1"/>
+			</tokenfilter>
+			<striplinebreaks/>
+		</filterchain>
+	</loadfile>
+	
+	<target name="info">
+		<echo message="Building ${ant.project.name} version ${version}..."/>
+	</target>
+	
+    <target name="init" depends="info">
+		<mkdir dir="build"/>
+    	<mkdir dir="${build}"/>
+    	<mkdir dir="${jar}"/>
+    	<mkdir dir="${dist}"/>
+    </target>
+	
+	<target name="clean">
+		<delete dir="${build}"/>
+		<delete dir="${jar}"/>
+	</target>
+	
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="on" deprecation="on">
+			<classpath>
+				<pathelement location="${lib}/craftbukkit.jar"/>
+				<pathelement location="${lib}/SpoutAPI.jar"/>
+			</classpath>
+		</javac>
+	</target>
+	
+	<target name="build" depends="compile">
+		<jar jarfile="${jar}/${ant.project.name}.jar" update="false">
+			<fileset dir="${build}/"/>
+			<fileset dir="${rsrc}/" includes="plugin.yml"/>
+		</jar>
+	</target>
+	
+	<target name="dist" depends="build">
+		<property name="zip" value="${dist}/zip.tmp"/>
+		<mkdir dir="${zip}"/>
+		<copy file="${jar}/${ant.project.name}.jar" todir="${zip}"/>
+		<mkdir dir="${zip}/Cookbook"/>
+		<copy todir="${zip}/Cookbook">
+			<fileset dir="${rsrc}" excludes="plugin.yml"/>
+		</copy>
+		<zip destfile="${dist}/${ant.project.name}-${version}.zip" basedir="${zip}" update="false"/>
+		<delete dir="${zip}"/>
+	</target>
+	
+	<target name="test" depends="build">
+		<copy file="${jar}/${ant.project.name}.jar" todir="../../plugins/"/>
+	</target>
+</project>
