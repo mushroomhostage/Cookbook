@@ -4,6 +4,9 @@ import ca.celticminstrel.cookbook.ContainerCookbook.ItemGroup;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.event.Event.Result;
+import org.bukkit.event.inventory.FurnaceBurnEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.inventory.ItemStack;
 import org.getspout.spoutapi.event.inventory.*;
 
 import net.minecraft.server.Container;
@@ -32,17 +35,18 @@ public class WindowListener extends InventoryListener {
 	
 	@Override@SuppressWarnings("incomplete-switch")
 	public void onInventoryClick(InventoryClickEvent event) {
-		Cookbook.debug("[" + event.getRawSlot() + "] Slot " + event.getSlot() + " of type " + event.getSlotType() + " clicked (raw slot " + event.getRawSlot() + ")");
+		//Cookbook.debug("[" + event.getRawSlot() + "] Slot " + event.getSlot() + " of type " + event.getSlotType() + " clicked (raw slot " + event.getRawSlot() + ")");
 		Container container = ((CraftPlayer)event.getPlayer()).getHandle().activeContainer;
 		if(!(container instanceof ContainerCookbook)) return;
 		ContainerCookbook book = (ContainerCookbook)container;
 		InventorySlotType slotType = event.getSlotType();
-		boolean dir;
+		boolean dir, isPlayerSlot = event instanceof InventoryPlayerClickEvent;
 		if(event.isLeftClick()) dir = ContainerCookbook.DIRECTION_UP;
 		else dir = ContainerCookbook.DIRECTION_DOWN;
-		int rawSlot = event.getRawSlot();
-		int slot = getSlot(rawSlot, slotType);
-		if(rawSlot == 36) slotType = InventorySlotType.QUICKBAR;
+		//int rawSlot = event.getRawSlot();
+		//int slot = getSlot(rawSlot, slotType);
+		//if(rawSlot == 36) slotType = InventorySlotType.QUICKBAR;
+		int slot = event.getSlot();
 		Cookbook.debug("Click on slot " + slot + " of type " + slotType);
 		switch(slotType) {
 		case CRAFTING:
@@ -52,7 +56,8 @@ public class WindowListener extends InventoryListener {
 		case OUTSIDE:
 			event.setCancelled(true);
 			break;
-		case PACK: case CONTAINER:
+		case CONTAINER:
+			if(!isPlayerSlot) break;
 			Cookbook.debug("Click in pack; is it shift-click?");
 			if(event.isShiftClick()) {
 				Cookbook.debug("Yes it is; cycling.");
@@ -91,8 +96,22 @@ public class WindowListener extends InventoryListener {
 	public void onInventoryClose(InventoryCloseEvent event) {}
 	
 	@Override
-	public void onInventoryCraft(InventoryCraftEvent event) {}
+	public void onInventoryCraft(InventoryCraftEvent event) {
+		ItemStack result = event.getResult();
+		String item = result.getType().toString().toLowerCase().replace('_', '-');
+		if(Option.PERMISSIONS_BY_RESULT.get() && !event.getPlayer().hasPermission("cookbook.craft.item." + item)) {
+			event.setCancelled(true);
+			event.getPlayer().sendMessage("You can't craft that item!");
+			return;
+		}
+	}
 	
 	@Override
 	public void onInventoryOpen(InventoryOpenEvent event) {}
+	
+	//@Override
+	public void onFurnaceSmelt(FurnaceSmeltEvent event) {}
+	
+	//@Override
+	public void onFurnaceBurn(FurnaceBurnEvent event) {}
 }

@@ -1,5 +1,9 @@
 name: Cookbook
 main: ca.celticminstrel.cookbook.Cookbook
-version: 0.2
+version: 0.3
 author: Celtic Minstrel
 softdepend: [Spout]
+permissions:
+  cookbook.view:
+    description: Allows you to view the in-game cookbook window.
+    default: true

@@ -9,24 +9,30 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Material;
+import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.FurnaceBurnEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.config.Configuration;
@@ -39,7 +45,7 @@ import net.minecraft.server.FurnaceRecipes;
 public class Cookbook extends JavaPlugin {
 	private static Logger log = Logger.getLogger("Minecraft.Cookbook");
 	private static Configuration config;
-	private List<Recipe> newRecipes = new ArrayList<Recipe>();
+	private LinkedHashMap<String,Recipe> newRecipes = new LinkedHashMap<String,Recipe>();
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
 	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
 	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
@@ -60,6 +66,7 @@ public class Cookbook extends JavaPlugin {
 			// TODO: Generate defaults
 			config.save();
 		}
+		Option.setConfiguration(config);
 		if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
 		else haveSpout = false;
 		loadRecipes();
@@ -86,7 +93,22 @@ public class Cookbook extends JavaPlugin {
 		debug("haveSpout = " + haveSpout);
 		if(haveSpout) {
 			info("Spout detected; enabling Spout features.");
-			pm.registerEvent(Type.CUSTOM_EVENT, new WindowListener(this), Priority.Normal, this);
+			pm.registerEvent(Type.CUSTOM_EVENT, new WindowListener(this), new EventExecutor() {
+				@Override@SuppressWarnings("incomplete-switch")
+				public void execute(Listener listener, Event event) {
+					switch(event.getType()) {
+					case CUSTOM_EVENT:
+						((WindowListener)listener).onCustomEvent(event);
+						break;
+					case FURNACE_BURN:
+						((WindowListener)listener).onFurnaceBurn((FurnaceBurnEvent)event);
+						break;
+					case FURNACE_SMELT:
+						((WindowListener)listener).onFurnaceSmelt((FurnaceSmeltEvent)event);
+						break;
+					}
+				}
+			}, Priority.Normal, this);
 			pm.registerEvent(Type.PLAYER_INTERACT, new ClickListener(this), Priority.Normal, this);
 			// Set item names
 			ItemManager items = SpoutManager.getItemManager();
@@ -129,15 +151,21 @@ public class Cookbook extends JavaPlugin {
 					warning(prefix + "Unexpected data on line " + iter.nextIndex() + "; skipping.");
 					continue;
 				}
-				if(directive.equalsIgnoreCase("@Smelt")) loadSmelting(iter, prefix);
-				else if(directive.equalsIgnoreCase("@Shaped")) loadShaped(iter, prefix);
-				else if(directive.equalsIgnoreCase("@Shapeless")) loadShapeless(iter, prefix);
+				String name = "";
+				if(directive.contains(" ")) {
+					int i = directive.indexOf(' ');
+					name = directive.substring(i + 1);
+					directive = directive.substring(0, i);
+				}
+				if(directive.equalsIgnoreCase("@Smelt")) loadSmelting(iter, prefix, name);
+				else if(directive.equalsIgnoreCase("@Shaped")) loadShaped(iter, prefix, name);
+				else if(directive.equalsIgnoreCase("@Shapeless")) loadShapeless(iter, prefix, name);
 				else warning(prefix + "Invalid directive " + directive + " on line " + iter.nextIndex() + ".");
 			}
 		} catch(FileNotFoundException e) {}
 		info("Loaded " + newRecipes.size() + " custom recipes.");
 		List<String> show = new ArrayList<String>();
-		for(Recipe recipe : newRecipes) {
+		for(Recipe recipe : newRecipes.values()) {
 			String display = recipe.getClass().getSimpleName() + "(";
 			if(recipe instanceof FurnaceRecipe) {
 				display += ((FurnaceRecipe)recipe).getInput();
@@ -153,7 +181,7 @@ public class Cookbook extends JavaPlugin {
 		debug("Loaded " + show);
 	}
 	
-	private void loadShaped(ListIterator<String> iter, String prefix) {
+	private void loadShaped(ListIterator<String> iter, String prefix, String name) {
 		if(!iter.hasNext()) {
 			warning(prefix + "Expected shapeless recipe on line " + iter.nextIndex() + " but found end-of-file.");
 			return;
@@ -181,7 +209,7 @@ public class Cookbook extends JavaPlugin {
 		ingred = iter.next();
 		m = resultPat.matcher(ingred);
 		if(m.matches()) {
-			addShapedRecipe(width, m, iter.nextIndex(), prefix, line1);
+			addShapedRecipe(width, m, iter.nextIndex(), prefix, name, line1);
 			return;
 		}
 		line2 = parseShapedLine(ingred, iter.nextIndex(), prefix);
@@ -196,7 +224,7 @@ public class Cookbook extends JavaPlugin {
 		ingred = iter.next();
 		m = resultPat.matcher(ingred);
 		if(m.matches()) {
-			addShapedRecipe(width, m, iter.nextIndex(), prefix, line1, line2);
+			addShapedRecipe(width, m, iter.nextIndex(), prefix, name, line1, line2);
 			return;
 		}
 		line3 = parseShapedLine(ingred, iter.nextIndex(), prefix);
@@ -210,14 +238,14 @@ public class Cookbook extends JavaPlugin {
 		ingred = iter.next();
 		m = resultPat.matcher(ingred);
 		if(m.matches()) {
-			addShapedRecipe(width, m, iter.nextIndex(), prefix, line1, line2, line3);
+			addShapedRecipe(width, m, iter.nextIndex(), prefix, name, line1, line2, line3);
 			return;
 		}
 		warning(prefix + "Missing recipe result on line " + iter.nextIndex() + ".");
 		iter.previous(); // Back up in case the "unknown data" is a directive starting the next recipe
 	}
 
-	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, MaterialData[]... lines) {
+	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, String name, MaterialData[]... lines) {
 		ItemStack stack = parseResult(m.group(1), m.group(2), lineno, prefix);
 		ShapedRecipe recipe = new ShapedRecipe(stack);
 		int h = lines.length;
@@ -253,7 +281,7 @@ public class Cookbook extends JavaPlugin {
 				c++;
 			}
 		}
-		addRecipe(recipe);
+		addRecipe(recipe, name);
 	}
 
 	private MaterialData[] parseShapedLine(String line, int lineno, String prefix) {
@@ -270,7 +298,7 @@ public class Cookbook extends JavaPlugin {
 		return parsed;
 	}
 
-	private void loadShapeless(ListIterator<String> iter, String prefix) {
+	private void loadShapeless(ListIterator<String> iter, String prefix, String name) {
 		if(!iter.hasNext()) {
 			warning(prefix + "Expected shapeless recipe on line " + iter.nextIndex() + " but found end-of-file.");
 			return;
@@ -300,10 +328,10 @@ public class Cookbook extends JavaPlugin {
 			if(ingred == null) return;
 			shapeless.addIngredient(ingred);
 		}
-		addRecipe(shapeless);
+		addRecipe(shapeless, name);
 	}
 
-	private void loadSmelting(ListIterator<String> iter, String prefix) {
+	private void loadSmelting(ListIterator<String> iter, String prefix, String name) {
 		if(!iter.hasNext()) {
 			warning(prefix + "Expected furnace recipe on line " + iter.nextIndex() + " but found end-of-file.");
 			return;
@@ -320,7 +348,7 @@ public class Cookbook extends JavaPlugin {
 		ItemStack result = parseResult(m.group(2), m.group(3), iter.nextIndex(), prefix);
 		if(result == null) return;
 		FurnaceRecipe furnace = new FurnaceRecipe(result, smelt);
-		addRecipe(furnace);
+		addRecipe(furnace, name);
 	}
 
 	private ItemStack parseResult(String amount, String item, int lineno, String prefix) {
@@ -370,9 +398,20 @@ public class Cookbook extends JavaPlugin {
 		return new MaterialData(mat, Byte.parseByte(data));
 	}
 
-	private void addRecipe(Recipe recipe) {
+	private Random nameGen = new Random();
+	private void addRecipe(Recipe recipe, String name) {
 		getServer().addRecipe(recipe);
-		newRecipes.add(recipe);
+		if(newRecipes.containsKey(name)) {
+			warning("Duplicate recipe name " + name + "; appending _ to make it unique.");
+			do {
+				name += '_';
+			} while(newRecipes.containsKey(name));
+		} else if(name.isEmpty()) {
+			do {
+				name = Integer.toHexString(nameGen.nextInt());
+			} while(newRecipes.containsKey(name));
+		}
+		newRecipes.put(name, recipe);
 	}
 
 	private void resetOrClear() {
