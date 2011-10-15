@@ -67,8 +67,10 @@ public class Cookbook extends JavaPlugin {
 			config.save();
 		}
 		Option.setConfiguration(config);
-		if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
-		else haveSpout = false;
+		if(Option.TRY_SPOUT.get()) {
+			if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
+			else haveSpout = false;
+		}
 		loadRecipes();
 		if(plugin == null) registerListeners();
 		plugin = this;

@@ -11,6 +11,7 @@ public abstract class Option {
 	public static OptionInteger SHAPED_WAND = new OptionInteger("wands.shaped", Material.IRON_SWORD.getId());
 	public static OptionInteger SHAPELESS_WAND = new OptionInteger("wands.shapeless", Material.BUCKET.getId());
 	public static OptionInteger SMELT_WAND = new OptionInteger("wands.smelt", Material.COAL.getId());
+	public static OptionBoolean TRY_SPOUT = new OptionBoolean("try-spout", true);
 	protected String node;
 	protected Object def;
 	protected static Configuration config;
