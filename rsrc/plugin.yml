@@ -1,6 +1,6 @@
 name: Cookbook
 main: ca.celticminstrel.cookbook.Cookbook
-version: 0.4
+version: 0.5
 author: Celtic Minstrel
 softdepend: [Spout]
 permissions:
