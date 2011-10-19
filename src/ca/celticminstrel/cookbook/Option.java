@@ -3,7 +3,7 @@ package ca.celticminstrel.cookbook;
 import java.util.List;
 
 import org.bukkit.Material;
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public abstract class Option {
 	public static OptionBoolean PERMISSIONS_BY_RESULT = new OptionBoolean("permissions-by-result", false);
@@ -14,7 +14,7 @@ public abstract class Option {
 	public static OptionBoolean TRY_SPOUT = new OptionBoolean("try-spout", true);
 	protected String node;
 	protected Object def;
-	protected static Configuration config;
+	protected static FileConfiguration config;
 	
 	@SuppressWarnings("hiding")
 	protected Option(String node, Object def) {
@@ -25,15 +25,15 @@ public abstract class Option {
 	public abstract Object get();
 	
 	public void set(Object value) {
-		config.setProperty(node, value);
+		config.set(node, value);
 	}
 	
 	public void reset() {
 		set(def);
 	}
 	
-	public static void setConfiguration(Configuration c) {
-		config = c;
+	public static void setConfiguration(FileConfiguration config2) {
+		config = config2;
 	}
 	
 	public static class OptionBoolean extends Option {
@@ -87,7 +87,7 @@ public abstract class Option {
 
 		@Override@SuppressWarnings("unchecked")
 		public List<String> get() {
-			return config.getStringList(node, (List<String>) def);
+			return config.getList(node, (List<String>) def);
 		}
 	}
 
@@ -98,7 +98,7 @@ public abstract class Option {
 
 		@Override@SuppressWarnings("unchecked")
 		public List<Integer> get() {
-			return config.getIntList(node, (List<Integer>) def);
+			return config.getList(node, (List<Integer>) def);
 		}
 	}
 }

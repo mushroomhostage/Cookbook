@@ -2,6 +2,8 @@ package ca.celticminstrel.cookbook;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import static java.lang.Math.min;
 import static java.lang.Math.max;
 import java.lang.reflect.Constructor;
@@ -20,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
@@ -35,16 +38,15 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.config.Configuration;
 import org.getspout.spoutapi.SpoutManager;
-import org.getspout.spoutapi.inventory.ItemManager;
+import org.getspout.spoutapi.inventory.MaterialManager;
 
 import net.minecraft.server.CraftingManager;
 import net.minecraft.server.FurnaceRecipes;
 
 public class Cookbook extends JavaPlugin {
 	private static Logger log = Logger.getLogger("Minecraft.Cookbook");
-	private static Configuration config;
+	private static FileConfiguration config;
 	private LinkedHashMap<String,Recipe> newRecipes = new LinkedHashMap<String,Recipe>();
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
 	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
@@ -60,11 +62,16 @@ public class Cookbook extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		info(getDescription().getFullName() + " enabled.");
-		config = getConfiguration();
+		config = getConfig();
 		File yml = new File(getDataFolder(), "config.yml");
 		if(!yml.exists()) {
 			// TODO: Generate defaults
-			config.save();
+			try {
+				yml.createNewFile();
+			} catch(IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		Option.setConfiguration(config);
 		if(Option.TRY_SPOUT.get()) {
@@ -113,21 +120,21 @@ public class Cookbook extends JavaPlugin {
 			}, Priority.Normal, this);
 			pm.registerEvent(Type.PLAYER_INTERACT, new ClickListener(this), Priority.Normal, this);
 			// Set item names
-			ItemManager items = SpoutManager.getItemManager();
-			items.setItemName(Material.DOUBLE_STEP, "Double Stone Slab");
-			items.setItemName(Material.LONG_GRASS, "Long Grass");
-			items.setItemName(Material.DEAD_BUSH, "Dead Shrub");
+			MaterialManager items = SpoutManager.getMaterialManager();
+			items.setItemName(SpoutProxy.getMaterial(Material.DOUBLE_STEP), "Double Stone Slab");
+			items.setItemName(SpoutProxy.getMaterial(Material.LONG_GRASS), "Long Grass");
+			items.setItemName(SpoutProxy.getMaterial(Material.DEAD_BUSH), "Dead Shrub");
 			// Toolbar
 			short toolbar = 127;
-			items.setItemName(Material.COMPASS, toolbar, "Navigate");
-			items.setItemName(Material.STONE, toolbar, "Basic Blocks");
-			items.setItemName(Material.CHEST, toolbar, "Containers");
-			items.setItemName(Material.SAPLING, toolbar, "Plants");
-			items.setItemName(Material.RAILS, toolbar, "Mechanisms");
-			items.setItemName(Material.WOOD_PICKAXE, toolbar, "Tools");
-			items.setItemName(Material.LEATHER_HELMET, toolbar, "Armour and Weapons");
-			items.setItemName(Material.APPLE, toolbar, "Food");
-			items.setItemName(Material.GREEN_RECORD, toolbar, "Misc");
+			items.setItemName(SpoutProxy.getMaterial(Material.COMPASS, toolbar), "Navigate");
+			items.setItemName(SpoutProxy.getMaterial(Material.STONE, toolbar), "Basic Blocks");
+			items.setItemName(SpoutProxy.getMaterial(Material.CHEST, toolbar), "Containers");
+			items.setItemName(SpoutProxy.getMaterial(Material.SAPLING, toolbar), "Plants");
+			items.setItemName(SpoutProxy.getMaterial(Material.RAILS, toolbar), "Mechanisms");
+			items.setItemName(SpoutProxy.getMaterial(Material.WOOD_PICKAXE, toolbar), "Tools");
+			items.setItemName(SpoutProxy.getMaterial(Material.LEATHER_HELMET, toolbar), "Armour and Weapons");
+			items.setItemName(SpoutProxy.getMaterial(Material.APPLE, toolbar), "Food");
+			items.setItemName(SpoutProxy.getMaterial(Material.GREEN_RECORD, toolbar), "Misc");
 		}
 	}
 	
@@ -363,7 +370,7 @@ public class Cookbook extends JavaPlugin {
 		Material material = parseMaterial(split[0], lineno, prefix);
 		if(material == null) return null;
 		if(split.length == 1) return new ItemStack(material, Integer.parseInt(amount));
-		if(!split[1].matches("[0-9]+")) {
+		if(!split[1].matches("-?[0-9]+")) {
 			warning(prefix + "Invalid data " + split[1] + " on line " + lineno + "; defaulting to 0.");
 			split[1] = "0";
 		}
