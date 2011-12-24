@@ -426,7 +426,7 @@ public class Cookbook extends JavaPlugin {
 		newRecipes.clear();
 		InitMethod init = InitMethod.RESET;
 		try {
-			init = InitMethod.valueOf(config.getString("startup"));
+			init = InitMethod.valueOf(Option.STARTUP.get());
 		} catch(Exception x) {
 			warning("An exception occurred which is probably innocuous.");
 			x.printStackTrace();
