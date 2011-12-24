@@ -38,9 +38,9 @@
 	
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="on" deprecation="on">
+			<include name="Cookbook.java Option.java"/>
 			<classpath>
 				<pathelement location="${lib}/craftbukkit.jar"/>
-				<pathelement location="${lib}/SpoutAPI.jar"/>
 			</classpath>
 		</javac>
 	</target>

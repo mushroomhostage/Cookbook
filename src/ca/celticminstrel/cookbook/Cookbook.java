@@ -38,20 +38,19 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.getspout.spoutapi.SpoutManager;
-import org.getspout.spoutapi.inventory.MaterialManager;
 
 import net.minecraft.server.CraftingManager;
 import net.minecraft.server.FurnaceRecipes;
 
 public class Cookbook extends JavaPlugin {
+	enum InitMethod {COMPOUND, RESET, CLEAN};
 	private static Logger log = Logger.getLogger("Minecraft.Cookbook");
 	private static FileConfiguration config;
 	private LinkedHashMap<String,Recipe> newRecipes = new LinkedHashMap<String,Recipe>();
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
 	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
 	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
-	private static boolean haveSpout = false;
+	//private static boolean haveSpout = false;
 	private static Cookbook plugin;
 	
 	@Override
@@ -74,10 +73,10 @@ public class Cookbook extends JavaPlugin {
 			}
 		}
 		Option.setConfiguration(config);
-		if(Option.TRY_SPOUT.get()) {
-			if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
-			else haveSpout = false;
-		}
+//		if(Option.TRY_SPOUT.get()) {
+//			if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
+//			else haveSpout = false;
+//		}
 		loadRecipes();
 		if(plugin == null) registerListeners();
 		plugin = this;
@@ -99,43 +98,43 @@ public class Cookbook extends JavaPlugin {
 	private void registerListeners() {
 		// TODO
 		PluginManager pm = getServer().getPluginManager();
-		debug("haveSpout = " + haveSpout);
-		if(haveSpout) {
-			info("Spout detected; enabling Spout features.");
-			pm.registerEvent(Type.CUSTOM_EVENT, new WindowListener(this), new EventExecutor() {
-				@Override@SuppressWarnings("incomplete-switch")
-				public void execute(Listener listener, Event event) {
-					switch(event.getType()) {
-					case CUSTOM_EVENT:
-						((WindowListener)listener).onCustomEvent(event);
-						break;
-					case FURNACE_BURN:
-						((WindowListener)listener).onFurnaceBurn((FurnaceBurnEvent)event);
-						break;
-					case FURNACE_SMELT:
-						((WindowListener)listener).onFurnaceSmelt((FurnaceSmeltEvent)event);
-						break;
-					}
-				}
-			}, Priority.Normal, this);
-			pm.registerEvent(Type.PLAYER_INTERACT, new ClickListener(this), Priority.Normal, this);
-			// Set item names
-			MaterialManager items = SpoutManager.getMaterialManager();
-			items.setItemName(SpoutProxy.getMaterial(Material.DOUBLE_STEP), "Double Stone Slab");
-			items.setItemName(SpoutProxy.getMaterial(Material.LONG_GRASS), "Long Grass");
-			items.setItemName(SpoutProxy.getMaterial(Material.DEAD_BUSH), "Dead Shrub");
-			// Toolbar
-			short toolbar = 127;
-			items.setItemName(SpoutProxy.getMaterial(Material.COMPASS, toolbar), "Navigate");
-			items.setItemName(SpoutProxy.getMaterial(Material.STONE, toolbar), "Basic Blocks");
-			items.setItemName(SpoutProxy.getMaterial(Material.CHEST, toolbar), "Containers");
-			items.setItemName(SpoutProxy.getMaterial(Material.SAPLING, toolbar), "Plants");
-			items.setItemName(SpoutProxy.getMaterial(Material.RAILS, toolbar), "Mechanisms");
-			items.setItemName(SpoutProxy.getMaterial(Material.WOOD_PICKAXE, toolbar), "Tools");
-			items.setItemName(SpoutProxy.getMaterial(Material.LEATHER_HELMET, toolbar), "Armour and Weapons");
-			items.setItemName(SpoutProxy.getMaterial(Material.APPLE, toolbar), "Food");
-			items.setItemName(SpoutProxy.getMaterial(Material.GREEN_RECORD, toolbar), "Misc");
-		}
+//		debug("haveSpout = " + haveSpout);
+//		if(haveSpout) {
+//			info("Spout detected; enabling Spout features.");
+//			pm.registerEvent(Type.CUSTOM_EVENT, new WindowListener(this), new EventExecutor() {
+//				@Override@SuppressWarnings("incomplete-switch")
+//				public void execute(Listener listener, Event event) {
+//					switch(event.getType()) {
+//					case CUSTOM_EVENT:
+//						((WindowListener)listener).onCustomEvent(event);
+//						break;
+//					case FURNACE_BURN:
+//						((WindowListener)listener).onFurnaceBurn((FurnaceBurnEvent)event);
+//						break;
+//					case FURNACE_SMELT:
+//						((WindowListener)listener).onFurnaceSmelt((FurnaceSmeltEvent)event);
+//						break;
+//					}
+//				}
+//			}, Priority.Normal, this);
+//			pm.registerEvent(Type.PLAYER_INTERACT, new ClickListener(this), Priority.Normal, this);
+//			// Set item names
+//			MaterialManager items = SpoutManager.getMaterialManager();
+//			items.setItemName(SpoutProxy.getMaterial(Material.DOUBLE_STEP), "Double Stone Slab");
+//			items.setItemName(SpoutProxy.getMaterial(Material.LONG_GRASS), "Long Grass");
+//			items.setItemName(SpoutProxy.getMaterial(Material.DEAD_BUSH), "Dead Shrub");
+//			// Toolbar
+//			short toolbar = 127;
+//			items.setItemName(SpoutProxy.getMaterial(Material.COMPASS, toolbar), "Navigate");
+//			items.setItemName(SpoutProxy.getMaterial(Material.STONE, toolbar), "Basic Blocks");
+//			items.setItemName(SpoutProxy.getMaterial(Material.CHEST, toolbar), "Containers");
+//			items.setItemName(SpoutProxy.getMaterial(Material.SAPLING, toolbar), "Plants");
+//			items.setItemName(SpoutProxy.getMaterial(Material.RAILS, toolbar), "Mechanisms");
+//			items.setItemName(SpoutProxy.getMaterial(Material.WOOD_PICKAXE, toolbar), "Tools");
+//			items.setItemName(SpoutProxy.getMaterial(Material.LEATHER_HELMET, toolbar), "Armour and Weapons");
+//			items.setItemName(SpoutProxy.getMaterial(Material.APPLE, toolbar), "Food");
+//			items.setItemName(SpoutProxy.getMaterial(Material.GREEN_RECORD, toolbar), "Misc");
+//		}
 	}
 	
 	private void loadRecipes() {
@@ -425,15 +424,21 @@ public class Cookbook extends JavaPlugin {
 
 	private void resetOrClear() {
 		newRecipes.clear();
-		boolean cleanInstall = config.getBoolean("clean-install", false);
+		InitMethod init = InitMethod.RESET;
+		try {
+			init = InitMethod.valueOf(config.getString("startup"));
+		} catch(Exception x) {
+			warning("An exception occurred which is probably innocuous.");
+			x.printStackTrace();
+		}
 		CraftingManager cm = CraftingManager.getInstance();
 		FurnaceRecipes fm = FurnaceRecipes.getInstance();
 		try {
 			Field recipes = CraftingManager.class.getDeclaredField("b");
 			recipes.setAccessible(true);
-			if(cleanInstall) {
+			if(init == InitMethod.CLEAN) {
 				((List<?>)recipes.get(cm)).clear();
-			} else {
+			} else if(init == InitMethod.RESET) {
 				Constructor<CraftingManager> ctor = CraftingManager.class.getDeclaredConstructor();
 				ctor.setAccessible(true);
 				CraftingManager temp = ctor.newInstance();
@@ -441,9 +446,9 @@ public class Cookbook extends JavaPlugin {
 			}
 			Field smelting = FurnaceRecipes.class.getDeclaredField("b");
 			smelting.setAccessible(true);
-			if(cleanInstall) {
+			if(init == InitMethod.CLEAN) {
 				((Map<?,?>)smelting.get(fm)).clear();
-			} else {
+			} else if(init == InitMethod.RESET) {
 				Constructor<FurnaceRecipes> ctor = FurnaceRecipes.class.getDeclaredConstructor();
 				ctor.setAccessible(true);
 				FurnaceRecipes temp = ctor.newInstance();
