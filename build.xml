@@ -6,7 +6,6 @@
 	<property name="build" value="build/classes"/>
 	<property name="jar" value="build/jar"/>
 	<property name="dist" value="build/dist"/>
-
 	
 	<loadfile srcFile="${rsrc}/plugin.yml" property="version">
 		<filterchain>
@@ -38,7 +37,6 @@
 	
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="on" deprecation="on">
-			<include name="Cookbook.java Option.java"/>
 			<classpath>
 				<pathelement location="${lib}/craftbukkit.jar"/>
 			</classpath>
@@ -64,7 +62,7 @@
 		<delete dir="${zip}"/>
 	</target>
 	
-	<target name="test" depends="build">
-		<copy file="${jar}/${ant.project.name}.jar" todir="../../plugins/"/>
+	<target name="test" depends="build" if="test-dir">
+		<copy file="${jar}/${ant.project.name}.jar" todir="${test-dir}/plugins"/>
 	</target>
 </project>

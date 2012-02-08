@@ -80,25 +80,25 @@ public abstract class Option {
 		}
 	}
 
-	public static class OptionStringList extends Option {
-		@SuppressWarnings("hiding") OptionStringList(String node, List<String> def) {
-			super(node, def);
-		}
-
-		@Override@SuppressWarnings("unchecked")
-		public List<String> get() {
-			return config.getList(node, (List<String>) def);
-		}
-	}
-
-	public static class OptionIntegerList extends Option {
-		@SuppressWarnings("hiding") OptionIntegerList(String node, List<Integer> def) {
-			super(node, def);
-		}
-
-		@Override@SuppressWarnings("unchecked")
-		public List<Integer> get() {
-			return config.getList(node, (List<Integer>) def);
-		}
-	}
+//	public static class OptionStringList extends Option {
+//		@SuppressWarnings("hiding") OptionStringList(String node, List<String> def) {
+//			super(node, def);
+//		}
+//
+//		@Override@SuppressWarnings("unchecked")
+//		public List<String> get() {
+//			return config.getList(node, (List<String>) def);
+//		}
+//	}
+//
+//	public static class OptionIntegerList extends Option {
+//		@SuppressWarnings("hiding") OptionIntegerList(String node, List<Integer> def) {
+//			super(node, def);
+//		}
+//
+//		@Override@SuppressWarnings("unchecked")
+//		public List<Integer> get() {
+//			return config.getList(node, (List<Integer>) def);
+//		}
+//	}
 }

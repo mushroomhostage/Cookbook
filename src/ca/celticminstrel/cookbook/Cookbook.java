@@ -369,7 +369,7 @@ public class Cookbook extends JavaPlugin {
 		Material material = parseMaterial(split[0], lineno, prefix);
 		if(material == null) return null;
 		if(split.length == 1) return new ItemStack(material, Integer.parseInt(amount));
-		if(!split[1].matches("-?[0-9]+")) {
+		if(!split[1].matches("[0-9]+")) {
 			warning(prefix + "Invalid data " + split[1] + " on line " + lineno + "; defaulting to 0.");
 			split[1] = "0";
 		}
@@ -399,9 +399,13 @@ public class Cookbook extends JavaPlugin {
 		Material mat = parseMaterial(name, lineno, prefix);
 		if(mat == null) return null;
 		if(data.isEmpty()) return new MaterialData(mat, (byte)0);
-		if(!data.matches("[0-9]+")) {
-			warning(prefix + "Invalid data " + data + " on line " + lineno + "; defaulting to 0.");
-			data = "0";
+		if(!data.matches("-?[0-9]+")) {
+			if(data.equals("*")) {
+				data = "-1";
+			} else {
+				warning(prefix + "Invalid data " + data + " on line " + lineno + "; defaulting to 0.");
+				data = "0";
+			}
 		}
 		return new MaterialData(mat, Byte.parseByte(data));
 	}
@@ -426,7 +430,7 @@ public class Cookbook extends JavaPlugin {
 		newRecipes.clear();
 		InitMethod init = InitMethod.RESET;
 		try {
-			init = InitMethod.valueOf(Option.STARTUP.get());
+			init = InitMethod.valueOf(Option.STARTUP.get().toUpperCase());
 		} catch(Exception x) {
 			warning("An exception occurred which is probably innocuous.");
 			x.printStackTrace();
