@@ -38,7 +38,7 @@
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="on" deprecation="on">
 			<classpath>
-				<pathelement location="${lib}/craftbukkit.jar"/>
+				<pathelement location="${lib}/bukkit.jar"/>
 			</classpath>
 		</javac>
 	</target>

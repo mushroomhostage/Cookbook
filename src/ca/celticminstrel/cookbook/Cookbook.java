@@ -21,11 +21,10 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event.Type;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
@@ -38,9 +37,6 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import net.minecraft.server.CraftingManager;
-import net.minecraft.server.FurnaceRecipes;
 
 public class Cookbook extends JavaPlugin {
 	enum InitMethod {COMPOUND, RESET, CLEAN};
@@ -78,7 +74,7 @@ public class Cookbook extends JavaPlugin {
 //			else haveSpout = false;
 //		}
 		loadRecipes();
-		if(plugin == null) registerListeners();
+		if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
 		plugin = this;
 		debug("Finished loading!");
 	}
@@ -435,36 +431,11 @@ public class Cookbook extends JavaPlugin {
 			warning("An exception occurred which is probably innocuous.");
 			x.printStackTrace();
 		}
-		CraftingManager cm = CraftingManager.getInstance();
-		FurnaceRecipes fm = FurnaceRecipes.getInstance();
-		try {
-			Field recipes = CraftingManager.class.getDeclaredField("b");
-			recipes.setAccessible(true);
-			if(init == InitMethod.CLEAN) {
-				((List<?>)recipes.get(cm)).clear();
-			} else if(init == InitMethod.RESET) {
-				Constructor<CraftingManager> ctor = CraftingManager.class.getDeclaredConstructor();
-				ctor.setAccessible(true);
-				CraftingManager temp = ctor.newInstance();
-				recipes.set(cm, recipes.get(temp));
-			}
-			Field smelting = FurnaceRecipes.class.getDeclaredField("b");
-			smelting.setAccessible(true);
-			if(init == InitMethod.CLEAN) {
-				((Map<?,?>)smelting.get(fm)).clear();
-			} else if(init == InitMethod.RESET) {
-				Constructor<FurnaceRecipes> ctor = FurnaceRecipes.class.getDeclaredConstructor();
-				ctor.setAccessible(true);
-				FurnaceRecipes temp = ctor.newInstance();
-				smelting.set(fm, smelting.get(temp));
-			}
-		} catch(SecurityException e) {}
-		catch(IllegalArgumentException e) {}
-		catch(NoSuchFieldException e) {}
-		catch(IllegalAccessException e) {}
-		catch(NoSuchMethodException e) {}
-		catch(InstantiationException e) {}
-		catch(InvocationTargetException e) {}
+		if(init == InitMethod.CLEAN) {
+			Bukkit.getServer().clearRecipes();
+		} else if(init == InitMethod.RESET) {
+			Bukkit.getServer().resetRecipes();
+		}
 	}
 	
 	public int numRecipes() {
