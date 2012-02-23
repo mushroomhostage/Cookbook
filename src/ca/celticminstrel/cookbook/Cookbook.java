@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -33,8 +34,8 @@ public class Cookbook extends JavaPlugin {
 	private static FileConfiguration config;
 	private LinkedHashMap<String,Recipe> newRecipes = new LinkedHashMap<String,Recipe>();
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
-	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
-	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
+	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*(.*)");
+	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*(.*)");
 	private static Cookbook plugin;
 	
 	@Override
@@ -192,7 +193,7 @@ public class Cookbook extends JavaPlugin {
 	}
 
 	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, String name, ItemStack[]... lines) {
-		ItemStack stack = parseResult(m.group(1), m.group(2), lineno, prefix);
+		ItemStack stack = parseResult(m.group(1), m.group(2), m.group(3), lineno, prefix);
 		ShapedRecipe recipe = new ShapedRecipe(stack);
 		int h = lines.length;
 		switch(h) {
@@ -265,7 +266,7 @@ public class Cookbook extends JavaPlugin {
 			iter.previous(); // Back up in case the "unknown data" is a directive starting the next recipe
 			return;
 		}
-		ItemStack result = parseResult(m.group(1), m.group(2), iter.nextIndex(), prefix);
+		ItemStack result = parseResult(m.group(1), m.group(2), m.group(3), iter.nextIndex(), prefix);
 		ShapelessRecipe shapeless = new ShapelessRecipe(result);
 		for(int i = 0; i < min(split.length, 9); i++) {
 			String[] mat = split[i].split("/");
@@ -291,13 +292,13 @@ public class Cookbook extends JavaPlugin {
 		}
 		Material smelt = parseMaterial(m.group(1), iter.nextIndex(), prefix);
 		if(smelt == null) return;
-		ItemStack result = parseResult(m.group(2), m.group(3), iter.nextIndex(), prefix);
+		ItemStack result = parseResult(m.group(2), m.group(3), m.group(4), iter.nextIndex(), prefix);
 		if(result == null) return;
 		FurnaceRecipe furnace = new FurnaceRecipe(result, smelt);
 		addRecipe(furnace, name);
 	}
 
-	private ItemStack parseResult(String amount, String item, int lineno, String prefix) {
+	private ItemStack parseResult(String amount, String item, String ench, int lineno, String prefix) {
 		if(!amount.matches("[0-9]+x?")) {
 			warning(prefix + "Invalid amount " + amount + " on line " + lineno + "; defaulting to 1.");
 			amount = "1";
@@ -322,7 +323,35 @@ public class Cookbook extends JavaPlugin {
 			warning(prefix + "Invalid data " + data + " for material " + material + " on line " + lineno +
 				"; continuing anyway.");
 		}
-		return new ItemStack(material, Integer.parseInt(amount), data);
+		ItemStack result = new ItemStack(material, Integer.parseInt(amount), data);
+		ench = ench.trim();
+		if(ench.isEmpty()) return result;
+		for(String magic : ench.split("\\s")) {
+			split = magic.split("=");
+			Enchantment enchantment = magic.matches("[0-9]+") ? Enchantment.getById(Integer.parseInt(split[0]))
+				: Enchantment.getByName(split[0]);
+			if(enchantment == null) {
+				warning(prefix + "Unknown enchantment " + split[0] + " on line " + lineno + "; skipping.");
+				continue;
+			}
+			if(!enchantment.canEnchantItem(result)) {
+				warning(prefix + "Invalid or conflicting enchantment " + split[0] + " for material " + material +
+					" on line " + lineno + "; skipping.");
+				continue;
+			}
+			int level = 1;
+			if(split.length > 1) {
+				if(split[1].matches("[0-9]+"))
+					level = Integer.parseInt(split[1]);
+				else warning(prefix + "Invalid enchantment level " + split[1] + " on line " + lineno +
+					"; defaulting to 1.");
+			}
+			if(level > enchantment.getMaxLevel())
+				warning(prefix + "Enchantment level " + level + " too high for enchantment " + split[0] +
+					" on line " + lineno + "; defaulting to maximum (" + (level = enchantment.getMaxLevel()) + ").");
+			result.addEnchantment(enchantment, level);
+		}
+		return result;
 	}
 	
 	private Material parseMaterial(String name, int lineno, String prefix) {
