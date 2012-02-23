@@ -6,15 +6,11 @@ import java.io.IOException;
 
 import static java.lang.Math.min;
 import static java.lang.Math.max;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -24,18 +20,12 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.Event;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.FurnaceBurnEvent;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.material.MaterialData;
-import org.bukkit.plugin.EventExecutor;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Cookbook extends JavaPlugin {
@@ -46,7 +36,6 @@ public class Cookbook extends JavaPlugin {
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
 	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
 	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*");
-	//private static boolean haveSpout = false;
 	private static Cookbook plugin;
 	
 	@Override
@@ -64,17 +53,13 @@ public class Cookbook extends JavaPlugin {
 			try {
 				yml.createNewFile();
 			} catch(IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		Option.setConfiguration(config);
-//		if(Option.TRY_SPOUT.get()) {
-//			if(getServer().getPluginManager().getPlugin("Spout") != null) haveSpout = true;
-//			else haveSpout = false;
-//		}
 		loadRecipes();
-		if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
+		// TODO: Uncomment this line
+		//if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
 		plugin = this;
 		debug("Finished loading!");
 	}
@@ -89,48 +74,6 @@ public class Cookbook extends JavaPlugin {
 
 	public static void debug(String string) {
 		log.info("[DEBUG] [Cookbook] " + string);
-	}
-	
-	private void registerListeners() {
-		// TODO
-		PluginManager pm = getServer().getPluginManager();
-//		debug("haveSpout = " + haveSpout);
-//		if(haveSpout) {
-//			info("Spout detected; enabling Spout features.");
-//			pm.registerEvent(Type.CUSTOM_EVENT, new WindowListener(this), new EventExecutor() {
-//				@Override@SuppressWarnings("incomplete-switch")
-//				public void execute(Listener listener, Event event) {
-//					switch(event.getType()) {
-//					case CUSTOM_EVENT:
-//						((WindowListener)listener).onCustomEvent(event);
-//						break;
-//					case FURNACE_BURN:
-//						((WindowListener)listener).onFurnaceBurn((FurnaceBurnEvent)event);
-//						break;
-//					case FURNACE_SMELT:
-//						((WindowListener)listener).onFurnaceSmelt((FurnaceSmeltEvent)event);
-//						break;
-//					}
-//				}
-//			}, Priority.Normal, this);
-//			pm.registerEvent(Type.PLAYER_INTERACT, new ClickListener(this), Priority.Normal, this);
-//			// Set item names
-//			MaterialManager items = SpoutManager.getMaterialManager();
-//			items.setItemName(SpoutProxy.getMaterial(Material.DOUBLE_STEP), "Double Stone Slab");
-//			items.setItemName(SpoutProxy.getMaterial(Material.LONG_GRASS), "Long Grass");
-//			items.setItemName(SpoutProxy.getMaterial(Material.DEAD_BUSH), "Dead Shrub");
-//			// Toolbar
-//			short toolbar = 127;
-//			items.setItemName(SpoutProxy.getMaterial(Material.COMPASS, toolbar), "Navigate");
-//			items.setItemName(SpoutProxy.getMaterial(Material.STONE, toolbar), "Basic Blocks");
-//			items.setItemName(SpoutProxy.getMaterial(Material.CHEST, toolbar), "Containers");
-//			items.setItemName(SpoutProxy.getMaterial(Material.SAPLING, toolbar), "Plants");
-//			items.setItemName(SpoutProxy.getMaterial(Material.RAILS, toolbar), "Mechanisms");
-//			items.setItemName(SpoutProxy.getMaterial(Material.WOOD_PICKAXE, toolbar), "Tools");
-//			items.setItemName(SpoutProxy.getMaterial(Material.LEATHER_HELMET, toolbar), "Armour and Weapons");
-//			items.setItemName(SpoutProxy.getMaterial(Material.APPLE, toolbar), "Food");
-//			items.setItemName(SpoutProxy.getMaterial(Material.GREEN_RECORD, toolbar), "Misc");
-//		}
 	}
 	
 	private void loadRecipes() {
