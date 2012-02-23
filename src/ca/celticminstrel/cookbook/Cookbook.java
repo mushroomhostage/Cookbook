@@ -25,7 +25,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
-import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Cookbook extends JavaPlugin {
@@ -135,7 +134,7 @@ public class Cookbook extends JavaPlugin {
 		}
 		int width = 0;
 		String ingred;
-		MaterialData[] line1, line2, line3;
+		ItemStack[] line1, line2, line3;
 		Matcher m;
 		// First line
 		ingred = iter.next();
@@ -192,7 +191,7 @@ public class Cookbook extends JavaPlugin {
 		iter.previous(); // Back up in case the "unknown data" is a directive starting the next recipe
 	}
 
-	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, String name, MaterialData[]... lines) {
+	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, String name, ItemStack[]... lines) {
 		ItemStack stack = parseResult(m.group(1), m.group(2), lineno, prefix);
 		ShapedRecipe recipe = new ShapedRecipe(stack);
 		int h = lines.length;
@@ -221,23 +220,23 @@ public class Cookbook extends JavaPlugin {
 		}
 		char c = 'a';
 		for(int i = 0; i < h; i++) {
-			MaterialData[] line = lines[i];
+			ItemStack[] line = lines[i];
 			for(int j = 0; j < w; j++) {
-				if(j < line.length && line[j].getItemType() != Material.AIR)
-					recipe.setIngredient(c, line[j]);
+				if(j < line.length && line[j].getType() != Material.AIR)
+					recipe.setIngredient(c, line[j].getType(), line[j].getDurability());
 				c++;
 			}
 		}
 		addRecipe(recipe, name);
 	}
 
-	private MaterialData[] parseShapedLine(String line, int lineno, String prefix) {
+	private ItemStack[] parseShapedLine(String line, int lineno, String prefix) {
 		String[] split = line.split("\\s+");
 		if(split.length > 3) {
 			warning(prefix + "Shape cannot be " + split.length + " wide on line " + lineno + ".");
 			return null;
 		}
-		MaterialData[] parsed = new MaterialData[split.length];
+		ItemStack[] parsed = new ItemStack[split.length];
 		for(int i = 0; i < split.length; i++) {
 			String[] item = split[i].split("/");
 			parsed[i] = parseMaterial(item[0], item.length > 1 ? item[1] : "", lineno, prefix);
@@ -271,9 +270,9 @@ public class Cookbook extends JavaPlugin {
 		for(int i = 0; i < min(split.length, 9); i++) {
 			String[] mat = split[i].split("/");
 			String data = mat.length > 1 ? mat[1] : "";
-			MaterialData ingred = parseMaterial(mat[0], data, iter.nextIndex(), prefix);
+			ItemStack ingred = parseMaterial(mat[0], data, iter.nextIndex(), prefix);
 			if(ingred == null) return;
-			shapeless.addIngredient(ingred);
+			shapeless.addIngredient(ingred.getType(), ingred.getDurability());
 		}
 		addRecipe(shapeless, name);
 	}
@@ -334,10 +333,10 @@ public class Cookbook extends JavaPlugin {
 		return mat;
 	}
 	
-	private MaterialData parseMaterial(String name, String data, int lineno, String prefix) {
+	private ItemStack parseMaterial(String name, String data, int lineno, String prefix) {
 		Material mat = parseMaterial(name, lineno, prefix);
 		if(mat == null) return null;
-		if(data.isEmpty()) return new MaterialData(mat, (byte)0);
+		if(data.isEmpty()) return new ItemStack(mat, 0, (short)0);
 		if(!data.matches("-?[0-9]+")) {
 			if(data.equals("*")) {
 				data = "-1";
@@ -346,7 +345,7 @@ public class Cookbook extends JavaPlugin {
 				data = "0";
 			}
 		}
-		return new MaterialData(mat, Byte.parseByte(data));
+		return new ItemStack(mat, Short.parseShort(data));
 	}
 
 	private Random nameGen = new Random();
