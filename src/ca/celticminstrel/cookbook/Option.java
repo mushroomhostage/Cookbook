@@ -1,7 +1,5 @@
 package ca.celticminstrel.cookbook;
 
-import java.util.List;
-
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -12,6 +10,7 @@ public abstract class Option {
 	public static OptionInteger SHAPELESS_WAND = new OptionInteger("wands.shapeless", Material.BUCKET.getId());
 	public static OptionInteger SMELT_WAND = new OptionInteger("wands.smelt", Material.COAL.getId());
 	public static OptionString STARTUP = new OptionString("startup", "reset");
+	public static OptionBoolean FIX_LAVA_BUCKET = new OptionBoolean("fix.lava-bucket", true);
 	protected String node;
 	protected Object def;
 	protected static FileConfiguration config;

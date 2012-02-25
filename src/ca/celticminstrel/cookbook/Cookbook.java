@@ -19,8 +19,12 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.Furnace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -28,7 +32,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Cookbook extends JavaPlugin {
+public class Cookbook extends JavaPlugin implements Listener {
 	enum InitMethod {COMPOUND, RESET, CLEAN};
 	private static Logger log = Logger.getLogger("Minecraft.Cookbook");
 	private static FileConfiguration config;
@@ -60,8 +64,21 @@ public class Cookbook extends JavaPlugin {
 		loadRecipes();
 		// TODO: Uncomment this line
 		//if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
+		if(Option.FIX_LAVA_BUCKET.get()) getServer().getPluginManager().registerEvents(this, this);
 		plugin = this;
 		debug("Finished loading!");
+	}
+
+	@EventHandler
+	public void onFurnaceBurn(FurnaceBurnEvent evt) {
+		debug("Furnace burning with fuel " + evt.getFuel());
+		final Furnace furnace = (Furnace)evt.getFurnace().getState();
+		if(evt.getFuel().getType() == Material.LAVA_BUCKET)
+			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+				@Override public void run() {
+					furnace.getInventory().setItem(1, new ItemStack(Material.BUCKET, 1));
+				}
+			});
 	}
 
 	public static void info(String string) {
