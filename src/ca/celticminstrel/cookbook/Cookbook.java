@@ -255,7 +255,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 		for(int i = 0; i < h; i++) {
 			ItemStack[] line = lines[i];
 			for(int j = 0; j < w; j++) {
-				if(j < line.length && line[j].getType() != Material.AIR)
+				if(j < line.length && line[j] != null && line[j].getType() != Material.AIR)
 					recipe.setIngredient(c, line[j].getType(), line[j].getDurability());
 				c++;
 			}
