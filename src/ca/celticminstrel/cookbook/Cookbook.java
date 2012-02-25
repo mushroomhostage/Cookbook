@@ -67,15 +67,15 @@ public class Cookbook extends JavaPlugin implements Listener {
 		loadRecipes();
 		// TODO: Uncomment this line
 		//if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
-		if(Option.FIX_LAVA_BUCKET.get()) {
+		if(Options.FIX_LAVA_BUCKET.get()) {
 			getServer().getPluginManager().registerEvents(this, this);
 			info("Lava bucket fix enabled!");
 		}
-		if(Option.FIX_SOUP_BOWL.get()) {
+		if(Options.FIX_SOUP_BOWL.get()) {
 			Item.MUSHROOM_SOUP.a(Item.BOWL);
 			info("Soup bowl fix enabled!");
 		}
-		if(Option.FIX_GLASS_BOTTLE.get()) {
+		if(Options.FIX_GLASS_BOTTLE.get()) {
 			Item.POTION.a(Item.GLASS_BOTTLE);
 			// TODO: Item.BOTTLE_OF_ENCHANTING.a(Item.GLASS_BOTTLE);
 			info("Glass bottle fix enabled! Note that this affects all potions, " +
@@ -443,7 +443,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 		newRecipes.clear();
 		InitMethod init = InitMethod.RESET;
 		try {
-			init = InitMethod.valueOf(Option.STARTUP.get().toUpperCase());
+			init = InitMethod.valueOf(Options.STARTUP.get().toUpperCase());
 		} catch(Exception x) {
 			warning("An exception occurred which is probably innocuous.");
 			x.printStackTrace();

@@ -1,105 +1,71 @@
 package ca.celticminstrel.cookbook;
 
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.Configuration;
 
-public abstract class Option {
-	public static OptionBoolean PERMISSIONS_BY_RESULT = new OptionBoolean("permissions-by-result", false);
-	public static OptionInteger VIEW_WAND = new OptionInteger("wands.view", Material.BOOK.getId());
-	public static OptionInteger SHAPED_WAND = new OptionInteger("wands.shaped", Material.IRON_SWORD.getId());
-	public static OptionInteger SHAPELESS_WAND = new OptionInteger("wands.shapeless", Material.BUCKET.getId());
-	public static OptionInteger SMELT_WAND = new OptionInteger("wands.smelt", Material.COAL.getId());
-	public static OptionString STARTUP = new OptionString("startup", "reset");
-	public static OptionBoolean FIX_LAVA_BUCKET = new OptionBoolean("fix.lava-bucket", true);
-	public static OptionBoolean FIX_SOUP_BOWL = new OptionBoolean("fix.soup-bowl", false);
-	public static OptionBoolean FIX_GLASS_BOTTLE = new OptionBoolean("fix.glass-bottle", false);
+public abstract class Option<T> {
 	protected String node;
-	protected Object def;
-	protected static FileConfiguration config;
+	protected T def;
+	private static Configuration config;
 	
 	@SuppressWarnings("hiding")
-	protected Option(String node, Object def) {
+	protected Option(String node, T def) {
 		this.node = node;
 		this.def = def;
 	}
 	
-	public abstract Object get();
+	public abstract T get();
 	
-	public void set(Object value) {
+	public void set(T value) {
 		config.set(node, value);
+	}
+	
+	public void remove() {
+		config.set(node, null);
 	}
 	
 	public void reset() {
 		set(def);
 	}
 	
-	public static void setConfiguration(FileConfiguration config2) {
-		config = config2;
+	public static void setConfiguration(Configuration c) {
+		config = c;
 	}
 	
-	public static class OptionBoolean extends Option {
-		@SuppressWarnings("hiding") OptionBoolean(String node, boolean def) {
-			super(node, def);
-		}
+	protected Configuration setDefault() {
+		if(def != null && config.get(node) == null) config.set(node, def);
+		return config;
+	}
+}
 
-		@Override
-		public Boolean get() {
-			return config.getBoolean(node, (Boolean) def);
-		}
+class OptionBoolean extends Option<Boolean> {
+	@SuppressWarnings("hiding") OptionBoolean(String node, boolean def) {
+		super(node, def);
 	}
 
-	public static class OptionString extends Option {
-		@SuppressWarnings("hiding") OptionString(String node, String def) {
-			super(node, def);
-		}
+	@Override
+	public Boolean get() {
+		return setDefault().getBoolean(node, def);
+	}
+}
 
-		@Override
-		public String get() {
-			return config.getString(node, (String) def);
-		}
+class OptionString extends Option<String> {
+	@SuppressWarnings("hiding") OptionString(String node, String def) {
+		super(node, def);
 	}
 
-	public static class OptionInteger extends Option {
-		@SuppressWarnings("hiding") OptionInteger(String node, int def) {
-			super(node, def);
-		}
+	@Override
+	public String get() {
+		return setDefault().getString(node, def);
+	}
+}
 
-		@Override
-		public Integer get() {
-			return config.getInt(node, (Integer) def);
-		}
+class OptionInteger extends Option<Integer> {
+	@SuppressWarnings("hiding") OptionInteger(String node, int def) {
+		super(node, def);
 	}
 
-	public static class OptionDouble extends Option {
-		@SuppressWarnings("hiding") OptionDouble(String node, double def) {
-			super(node, def);
-		}
-
-		@Override
-		public Double get() {
-			return config.getDouble(node, (Double) def);
-		}
+	@Override
+	public Integer get() {
+		return setDefault().getInt(node, def);
 	}
-
-//	public static class OptionStringList extends Option {
-//		@SuppressWarnings("hiding") OptionStringList(String node, List<String> def) {
-//			super(node, def);
-//		}
-//
-//		@Override@SuppressWarnings("unchecked")
-//		public List<String> get() {
-//			return config.getList(node, (List<String>) def);
-//		}
-//	}
-//
-//	public static class OptionIntegerList extends Option {
-//		@SuppressWarnings("hiding") OptionIntegerList(String node, List<Integer> def) {
-//			super(node, def);
-//		}
-//
-//		@Override@SuppressWarnings("unchecked")
-//		public List<Integer> get() {
-//			return config.getList(node, (List<Integer>) def);
-//		}
-//	}
 }
