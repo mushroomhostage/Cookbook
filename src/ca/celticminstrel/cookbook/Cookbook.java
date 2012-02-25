@@ -34,7 +34,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Cookbook extends JavaPlugin implements Listener {
 	enum InitMethod {COMPOUND, RESET, CLEAN};
-	private static Logger log = Logger.getLogger("Minecraft.Cookbook");
+	private static Logger log;
 	private static FileConfiguration config;
 	private LinkedHashMap<String,Recipe> newRecipes = new LinkedHashMap<String,Recipe>();
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
@@ -49,6 +49,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 	
 	@Override
 	public void onEnable() {
+		log = getLogger();
 		info(getDescription().getFullName() + " enabled.");
 		config = getConfig();
 		File yml = new File(getDataFolder(), "config.yml");
@@ -82,15 +83,15 @@ public class Cookbook extends JavaPlugin implements Listener {
 	}
 
 	public static void info(String string) {
-		log.info("[Cookbook] " + string);
+		log.info(string);
 	}
 
 	public static void warning(String string) {
-		log.warning("[Cookbook] " + string);
+		log.warning(string);
 	}
 
 	public static void debug(String string) {
-		log.info("[DEBUG] [Cookbook] " + string);
+		log.info("[DEBUG] " + string);
 	}
 	
 	private void loadRecipes() {
