@@ -11,6 +11,7 @@ public abstract class Option {
 	public static OptionInteger SMELT_WAND = new OptionInteger("wands.smelt", Material.COAL.getId());
 	public static OptionString STARTUP = new OptionString("startup", "reset");
 	public static OptionBoolean FIX_LAVA_BUCKET = new OptionBoolean("fix.lava-bucket", true);
+	public static OptionBoolean FIX_SOUP_BOWL = new OptionBoolean("fix.soup-bowl", false);
 	protected String node;
 	protected Object def;
 	protected static FileConfiguration config;

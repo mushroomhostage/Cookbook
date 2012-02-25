@@ -32,6 +32,8 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.minecraft.server.Item;
+
 public class Cookbook extends JavaPlugin implements Listener {
 	enum InitMethod {COMPOUND, RESET, CLEAN};
 	private static Logger log;
@@ -65,7 +67,14 @@ public class Cookbook extends JavaPlugin implements Listener {
 		loadRecipes();
 		// TODO: Uncomment this line
 		//if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
-		if(Option.FIX_LAVA_BUCKET.get()) getServer().getPluginManager().registerEvents(this, this);
+		if(Option.FIX_LAVA_BUCKET.get()) {
+			getServer().getPluginManager().registerEvents(this, this);
+			info("Lava bucket fix enabled!");
+		}
+		if(Option.FIX_SOUP_BOWL.get()) {
+			Item.MUSHROOM_SOUP.a(Item.BOWL);
+			info("Soup bowl fix enabled!");
+		}
 		plugin = this;
 		debug("Finished loading!");
 	}
