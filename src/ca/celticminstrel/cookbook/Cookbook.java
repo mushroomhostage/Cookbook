@@ -69,7 +69,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 		plugin = this;
 		debug("Finished loading!");
 	}
-
+	
 	@EventHandler
 	public void onFurnaceBurn(FurnaceBurnEvent evt) {
 		debug("Furnace burning with fuel " + evt.getFuel());
@@ -129,21 +129,24 @@ public class Cookbook extends JavaPlugin implements Listener {
 			}
 		} catch(FileNotFoundException e) {}
 		info("Loaded " + newRecipes.size() + " custom recipes.");
-		List<String> show = new ArrayList<String>();
 		for(Recipe recipe : newRecipes.values()) {
-			String display = recipe.getClass().getSimpleName() + "(";
+			StringBuilder show = new StringBuilder();
+			show.append(recipe.getClass().getSimpleName() + "(");
 			if(recipe instanceof FurnaceRecipe) {
-				display += ((FurnaceRecipe)recipe).getInput();
+				show.append(((FurnaceRecipe)recipe).getInput());
 			} else if(recipe instanceof ShapelessRecipe) {
-				display += ((ShapelessRecipe)recipe).getIngredientList();
+				show.append(((ShapelessRecipe)recipe).getIngredientList());
 			} else if(recipe instanceof ShapedRecipe) {
 				ShapedRecipe shaped = (ShapedRecipe)recipe;
-				display += Arrays.asList(shaped.getShape()) + " -- " + shaped.getIngredientMap();
+				show.append(Arrays.asList(shaped.getShape()) + " -- " + shaped.getIngredientMap());
 			}
-			display += " -> " + recipe.getResult() + ")";
-			show.add(display);
+			ItemStack result = recipe.getResult();
+			show.append(" -> " + result);
+			if(!result.getEnchantments().isEmpty())
+				show.append(" -- " + result.getEnchantments());
+			show.append(')');
+			debug("Loaded " + show);
 		}
-		debug("Loaded " + show);
 	}
 	
 	private void loadShaped(ListIterator<String> iter, String prefix, String name) {
@@ -211,7 +214,9 @@ public class Cookbook extends JavaPlugin implements Listener {
 	}
 
 	private void addShapedRecipe(int w, Matcher m, int lineno, String prefix, String name, ItemStack[]... lines) {
+		debug("Result pat subpattern matches: " + m.group(1) + ", " + m.group(2) + ", " + m.group(3));
 		ItemStack stack = parseResult(m.group(1), m.group(2), m.group(3), lineno, prefix);
+		debug("Have enchanted result? " + stack.getEnchantments());
 		ShapedRecipe recipe = new ShapedRecipe(stack);
 		int h = lines.length;
 		switch(h) {
@@ -284,7 +289,9 @@ public class Cookbook extends JavaPlugin implements Listener {
 			iter.previous(); // Back up in case the "unknown data" is a directive starting the next recipe
 			return;
 		}
+		debug("Result pat subpattern matches: " + m.group(1) + ", " + m.group(2) + ", " + m.group(3));
 		ItemStack result = parseResult(m.group(1), m.group(2), m.group(3), iter.nextIndex(), prefix);
+		debug("Have enchanted result? " + result.getEnchantments());
 		ShapelessRecipe shapeless = new ShapelessRecipe(result);
 		for(int i = 0; i < min(split.length, 9); i++) {
 			String[] mat = split[i].split("/");
@@ -310,8 +317,10 @@ public class Cookbook extends JavaPlugin implements Listener {
 		}
 		Material smelt = parseMaterial(m.group(1), iter.nextIndex(), prefix);
 		if(smelt == null) return;
+		debug("Furnace pat subpattern matches: " + m.group(1) + ", " + m.group(2) + ", " + m.group(3) + ", " + m.group(4));
 		ItemStack result = parseResult(m.group(2), m.group(3), m.group(4), iter.nextIndex(), prefix);
 		if(result == null) return;
+		debug("Have enchanted result? " + result.getEnchantments());
 		FurnaceRecipe furnace = new FurnaceRecipe(result, smelt);
 		addRecipe(furnace, name);
 	}
@@ -325,24 +334,27 @@ public class Cookbook extends JavaPlugin implements Listener {
 		String[] split = item.split("/");
 		Material material = parseMaterial(split[0], lineno, prefix);
 		if(material == null) return null;
-		if(split.length == 1) return new ItemStack(material, Integer.parseInt(amount));
-		if(!split[1].matches("[0-9]+")) {
-			warning(prefix + "Invalid data " + split[1] + " on line " + lineno + "; defaulting to 0.");
-			split[1] = "0";
-		}
-		short data = Short.parseShort(split[1]);
-		if(material.getMaxDurability() > 0 && data > material.getMaxDurability()) {
-			warning(prefix + "Invalid data " + data + " for material " + material + " on line " + lineno +
-				"; continuing anyway.");
-		} else if(material == Material.MAP && getServer().getMap(data) == null) {
-			warning(prefix + "Invalid data for material MAP on line " + lineno + "; map ID " + data +
-				" does not exist. Continuing anyway.");
-		} else if(material.getMaxDurability() == -1 && data >= 16) {
-			warning(prefix + "Invalid data " + data + " for material " + material + " on line " + lineno +
-				"; continuing anyway.");
+		short data = 0;
+		if(split.length > 1) {
+			if(!split[1].matches("[0-9]+")) {
+				warning(prefix + "Invalid data " + split[1] + " on line " + lineno + "; defaulting to 0.");
+				split[1] = "0";
+			}
+			data = Short.parseShort(split[1]);
+			if(material.getMaxDurability() > 0 && data > material.getMaxDurability()) {
+				warning(prefix + "Invalid data " + data + " for material " + material + " on line " + lineno +
+					"; continuing anyway.");
+			} else if(material == Material.MAP && getServer().getMap(data) == null) {
+				warning(prefix + "Invalid data for material MAP on line " + lineno + "; map ID " + data +
+					" does not exist. Continuing anyway.");
+			} else if(material.getMaxDurability() == -1 && data >= 16) {
+				warning(prefix + "Invalid data " + data + " for material " + material + " on line " + lineno +
+					"; continuing anyway.");
+			}
 		}
 		ItemStack result = new ItemStack(material, Integer.parseInt(amount), data);
 		ench = ench.trim();
+		debug("Parsing enchantments: " + ench);
 		if(ench.isEmpty()) return result;
 		for(String magic : ench.split("\\s")) {
 			split = magic.split("=");
@@ -369,6 +381,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 					" on line " + lineno + "; defaulting to maximum (" + (level = enchantment.getMaxLevel()) + ").");
 			result.addEnchantment(enchantment, level);
 		}
+		debug("Have enchanted result? " + result.getEnchantments());
 		return result;
 	}
 	
