@@ -12,6 +12,7 @@ public abstract class Option {
 	public static OptionString STARTUP = new OptionString("startup", "reset");
 	public static OptionBoolean FIX_LAVA_BUCKET = new OptionBoolean("fix.lava-bucket", true);
 	public static OptionBoolean FIX_SOUP_BOWL = new OptionBoolean("fix.soup-bowl", false);
+	public static OptionBoolean FIX_GLASS_BOTTLE = new OptionBoolean("fix.glass-bottle", false);
 	protected String node;
 	protected Object def;
 	protected static FileConfiguration config;

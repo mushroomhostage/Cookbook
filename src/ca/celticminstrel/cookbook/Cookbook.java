@@ -75,6 +75,12 @@ public class Cookbook extends JavaPlugin implements Listener {
 			Item.MUSHROOM_SOUP.a(Item.BOWL);
 			info("Soup bowl fix enabled!");
 		}
+		if(Option.FIX_GLASS_BOTTLE.get()) {
+			Item.POTION.a(Item.GLASS_BOTTLE);
+			// TODO: Item.BOTTLE_OF_ENCHANTING.a(Item.GLASS_BOTTLE);
+			info("Glass bottle fix enabled! Note that this affects all potions, " +
+				"including splash potions and (starting in 1.2) experience bottles.");
+		}
 		plugin = this;
 		debug("Finished loading!");
 	}
