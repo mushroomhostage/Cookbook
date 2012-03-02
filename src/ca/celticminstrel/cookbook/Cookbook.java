@@ -88,7 +88,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onFurnaceBurn(FurnaceBurnEvent evt) {
 		debug("Furnace burning with fuel " + evt.getFuel());
-		final Furnace furnace = (Furnace)evt.getFurnace().getState();
+		final Furnace furnace = (Furnace)evt.getBlock().getState();
 		if(evt.getFuel().getType() == Material.LAVA_BUCKET)
 			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 				@Override public void run() {
