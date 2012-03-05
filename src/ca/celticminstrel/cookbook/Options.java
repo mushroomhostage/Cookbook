@@ -12,5 +12,6 @@ public final class Options {
 	public static OptionBoolean FIX_LAVA_BUCKET = new OptionBoolean("fix.lava-bucket", true);
 	public static OptionBoolean FIX_SOUP_BOWL = new OptionBoolean("fix.soup-bowl", false);
 	public static OptionBoolean FIX_GLASS_BOTTLE = new OptionBoolean("fix.glass-bottle", false);
+	public static OptionBoolean DEBUG = new OptionBoolean("debug", false);
 	private Options() {}
 }

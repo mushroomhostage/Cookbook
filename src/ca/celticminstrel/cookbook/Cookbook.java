@@ -106,7 +106,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 	}
 
 	public static void debug(String string) {
-		log.info("[DEBUG] " + string);
+		if(Options.DEBUG.get()) log.info("[DEBUG] " + string);
 	}
 	
 	private void loadRecipes() {
