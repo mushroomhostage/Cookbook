@@ -50,7 +50,7 @@
 		</jar>
 	</target>
 	
-	<target name="dist" depends="build">
+	<target name="dist" depends="clean,build">
 		<property name="zip" value="${dist}/zip.tmp"/>
 		<mkdir dir="${zip}"/>
 		<copy file="${jar}/${ant.project.name}.jar" todir="${zip}"/>
