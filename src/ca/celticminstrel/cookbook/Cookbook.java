@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -146,22 +147,57 @@ public class Cookbook extends JavaPlugin implements Listener {
 		info("Loaded " + newRecipes.size() + " custom recipes.");
 		for(Recipe recipe : newRecipes.values()) {
 			StringBuilder show = new StringBuilder();
-			show.append(recipe.getClass().getSimpleName() + "(");
+			show.append(recipe.getClass().getSimpleName()).append("(");
 			if(recipe instanceof FurnaceRecipe) {
-				show.append(((FurnaceRecipe)recipe).getInput());
+				formatItem(show,((FurnaceRecipe)recipe).getInput());
 			} else if(recipe instanceof ShapelessRecipe) {
-				show.append(((ShapelessRecipe)recipe).getIngredientList());
+				List<ItemStack> ingred = ((ShapelessRecipe)recipe).getIngredientList();
+				boolean first = true;
+				for(ItemStack stack : ingred) {
+					if(first) {
+						show.append('[');
+						first = false;
+					} else show.append(", ");
+					formatItem(show,stack);
+				}
+				show.append(']');
 			} else if(recipe instanceof ShapedRecipe) {
 				ShapedRecipe shaped = (ShapedRecipe)recipe;
-				show.append(Arrays.asList(shaped.getShape()) + " -- " + shaped.getIngredientMap());
+				show.append(Arrays.asList(shaped.getShape())).append(" -- ");
+				Map<Character,ItemStack> ingred = shaped.getIngredientMap();
+				boolean first = true;
+				for(char c : ingred.keySet()) {
+					if(first) {
+						show.append('{');
+						first = false;
+					} else show.append(", ");
+					show.append(c).append('=');
+					formatItem(show,ingred.get(c));
+				}
+				show.append('}');
 			}
 			ItemStack result = recipe.getResult();
-			show.append(" -> " + result);
-			if(!result.getEnchantments().isEmpty())
-				show.append(" -- " + result.getEnchantments());
+			show.append(" -> ");
+			formatItem(show,result);
+			if(!result.getEnchantments().isEmpty()) {
+				show.append(" -- ");
+				for(Enchantment ench : result.getEnchantments().keySet()) {
+					formatEnchant(show,ench).append('=').append(result.getEnchantmentLevel(ench));
+				}
+			}
 			show.append(')');
 			debug("Loaded " + show);
 		}
+	}
+	
+	private StringBuilder formatItem(StringBuilder show, ItemStack stack) {
+		if(stack == null) return show.append("null");
+		return show.append("ItemStack{").append(stack.getType().toString()).append('/')
+			.append(stack.getDurability()).append('}');
+	}
+	
+	private StringBuilder formatEnchant(StringBuilder show, Enchantment enchant) {
+		return show.append("Enchantment{").append(enchant.toString()).append('}');
 	}
 	
 	private void loadShaped(ListIterator<String> iter, String prefix, String name) {
