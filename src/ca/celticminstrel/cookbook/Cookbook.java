@@ -456,7 +456,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 				data = "0";
 			}
 		}
-		return new ItemStack(mat, Short.parseShort(data));
+		return new ItemStack(mat, 1, Short.parseShort(data));
 	}
 
 	private Random nameGen = new Random();
