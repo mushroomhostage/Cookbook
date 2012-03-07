@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -31,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.minecraft.server.Item;
@@ -66,10 +68,12 @@ public class Cookbook extends JavaPlugin implements Listener {
 		}
 		Option.setConfiguration(config);
 		loadRecipes();
+		PluginManager pm = getServer().getPluginManager();
 		// TODO: Uncomment this line
-		//if(plugin == null) getServer().getPluginManager().registerEvents(new WindowListener(this), this);
+		//pm.registerEvents(new WindowListener(this), this);
+		pm.registerEvents(new RecipeListener(this), this);
 		if(Options.FIX_LAVA_BUCKET.get()) {
-			getServer().getPluginManager().registerEvents(this, this);
+			pm.registerEvents(this, this);
 			info("Lava bucket fix enabled!");
 		}
 		if(Options.FIX_SOUP_BOWL.get()) {
@@ -472,7 +476,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 				name = Integer.toHexString(nameGen.nextInt());
 			} while(newRecipes.containsKey(name));
 		}
-		newRecipes.put(name, recipe);
+		newRecipes.put(name.replace(' ', '_'), recipe);
 	}
 
 	private void resetOrClear() {
@@ -491,12 +495,46 @@ public class Cookbook extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public int numRecipes() {
-		return newRecipes.size();
-	}
-	
-	public Recipe getRecipe(int num) {
-		if(num < 0 || num >= numRecipes()) return null;
-		return newRecipes.get(num);
+	public String getRecipeName(Recipe recipe) {
+		for(Entry<String,Recipe> entry : newRecipes.entrySet()) {
+			Recipe toMatch = entry.getValue();
+			if(!toMatch.getResult().equals(recipe.getResult())) continue;
+			if(!toMatch.getClass().isAssignableFrom(recipe.getClass())) continue;
+			if(recipe instanceof ShapedRecipe) {
+				ItemStack[][] have = new ItemStack[][] {new ItemStack[3], new ItemStack[3], new ItemStack[3]};
+				ItemStack[][] need = new ItemStack[][] {new ItemStack[3], new ItemStack[3], new ItemStack[3]};
+				String[] haveShape = ((ShapedRecipe)toMatch).getShape();
+				String[] needShape = ((ShapedRecipe)recipe).getShape();
+				Map<Character,ItemStack> haveIngred = ((ShapedRecipe)toMatch).getIngredientMap();
+				Map<Character,ItemStack> needIngred = ((ShapedRecipe)recipe).getIngredientMap();
+				// TODO: This almost certainly won't work reliably
+				for(int i = 0; i < 3; i++) {
+					for(int j = 0; j < 3; j++) {
+						have[i][j] = haveIngred.get(haveShape[i].charAt(j));
+						need[i][j] = needIngred.get(needShape[i].charAt(j));
+					}
+				}
+				if(!Arrays.deepEquals(have, need)) continue;
+				for(int i = 0; i < 3; i++) {
+					for(int j = 0; j < 3; j++) {
+						have[i][j] = haveIngred.get(haveShape[i].charAt(j));
+						need[i][j] = needIngred.get(needShape[i].charAt(j));
+					}
+				}
+				if(!Arrays.deepEquals(have, need)) continue;
+				return entry.getKey();
+			} else if(recipe instanceof ShapelessRecipe) {
+				List<ItemStack> need = ((ShapelessRecipe)recipe).getIngredientList();
+				List<ItemStack> have = ((ShapelessRecipe)toMatch).getIngredientList();
+				if(have.size() != need.size()) continue;
+				need.removeAll(have);
+				if(need.size() != 0) continue;
+				return entry.getKey();
+			} else if(recipe instanceof FurnaceRecipe) {
+				if(((FurnaceRecipe)toMatch).getInput().equals(((FurnaceRecipe)recipe).getInput()))
+					return entry.getKey();
+			}
+		}
+		return null;
 	}
 }

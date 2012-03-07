@@ -3,7 +3,9 @@ package ca.celticminstrel.cookbook;
 import org.bukkit.Material;
 
 public final class Options {
-	public static OptionBoolean PERMISSIONS_BY_RESULT = new OptionBoolean("permissions-by-result", false);
+	public static OptionBoolean PERMISSIONS_DEFAULT = new OptionBoolean("permissions.default", true);
+	public static OptionBoolean PERMISSIONS_BY_RESULT = new OptionBoolean("permissions.by-result", false);
+	public static OptionBoolean PERMISSIONS_BY_NAME = new OptionBoolean("permissions.by-name", false);
 	public static OptionInteger VIEW_WAND = new OptionInteger("wands.view", Material.BOOK.getId());
 	public static OptionInteger SHAPED_WAND = new OptionInteger("wands.shaped", Material.IRON_SWORD.getId());
 	public static OptionInteger SHAPELESS_WAND = new OptionInteger("wands.shapeless", Material.BUCKET.getId());
