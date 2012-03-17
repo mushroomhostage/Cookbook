@@ -24,9 +24,13 @@ import org.bukkit.Material;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -72,8 +76,8 @@ public class Cookbook extends JavaPlugin implements Listener {
 		// TODO: Uncomment this line
 		//pm.registerEvents(new WindowListener(this), this);
 		pm.registerEvents(new RecipeListener(this), this);
+		pm.registerEvents(this, this);
 		if(Options.FIX_LAVA_BUCKET.get()) {
-			pm.registerEvents(this, this);
 			info("Lava bucket fix enabled!");
 		}
 		if(Options.FIX_SOUP_BOWL.get()) {
@@ -92,6 +96,10 @@ public class Cookbook extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void onFurnaceBurn(FurnaceBurnEvent evt) {
+		if(!Options.FIX_LAVA_BUCKET.get()) {
+			evt.getHandlers().unregister((Listener)this);
+			return;
+		}
 		debug("Furnace burning with fuel " + evt.getFuel());
 		final Furnace furnace = (Furnace)evt.getBlock().getState();
 		if(evt.getFuel().getType() == Material.LAVA_BUCKET)
@@ -100,6 +108,34 @@ public class Cookbook extends JavaPlugin implements Listener {
 					furnace.getInventory().setItem(1, new ItemStack(Material.BUCKET, 1));
 				}
 			});
+	}
+	
+	@EventHandler
+	public void onCraft(final InventoryClickEvent evt) { // TODO: Change to CraftItemEvent
+		if(!(evt.getInventory() instanceof CraftingInventory)) return; // TODO: This line won't be needed
+		if(evt.getRawSlot() != 0) return; // TODO: This line won't be needed
+		boolean scheduleUpdate = false;
+		final CraftingInventory inven = (CraftingInventory)evt.getInventory();
+		debug("Contains potion? " + (inven.contains(Material.POTION) || inven.contains(Material.EXP_BOTTLE)));
+		debug("Contains soup? " + inven.contains(Material.MUSHROOM_SOUP));
+		debug("Shift click? " + evt.isShiftClick());
+		for(ItemStack item : inven.getMatrix()) {
+			debug(String.valueOf(item));
+		}
+		if(Options.FIX_GLASS_BOTTLE.get() && (inven.contains(Material.POTION) || inven.contains(Material.EXP_BOTTLE)))
+			scheduleUpdate = true;
+		else if(Options.FIX_SOUP_BOWL.get() && inven.contains(Material.MUSHROOM_SOUP))
+			scheduleUpdate = true;
+		else if(evt.isShiftClick()) scheduleUpdate = true;
+		scheduleUpdate = scheduleUpdate && evt.getWhoClicked() instanceof Player;
+		if(scheduleUpdate) {
+			debug("Scheduling an inventory update for " + evt.getWhoClicked().getName() + "!");
+			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+				@Override@SuppressWarnings("deprecation") public void run() {
+					((Player)evt.getWhoClicked()).updateInventory();
+				}
+			}, 1);
+		}
 	}
 
 	public static void info(String string) {
@@ -152,48 +188,48 @@ public class Cookbook extends JavaPlugin implements Listener {
 		for(Recipe recipe : newRecipes.values()) {
 			StringBuilder show = new StringBuilder();
 			show.append(recipe.getClass().getSimpleName()).append("(");
-			if(recipe instanceof FurnaceRecipe) {
-				formatItem(show,((FurnaceRecipe)recipe).getInput());
-			} else if(recipe instanceof ShapelessRecipe) {
-				List<ItemStack> ingred = ((ShapelessRecipe)recipe).getIngredientList();
-				boolean first = true;
-				for(ItemStack stack : ingred) {
-					if(first) {
-						show.append('[');
-						first = false;
-					} else show.append(", ");
-					formatItem(show,stack);
+				if(recipe instanceof FurnaceRecipe) {
+					formatItem(show,((FurnaceRecipe)recipe).getInput());
+				} else if(recipe instanceof ShapelessRecipe) {
+					List<ItemStack> ingred = ((ShapelessRecipe)recipe).getIngredientList();
+					boolean first = true;
+					for(ItemStack stack : ingred) {
+						if(first) {
+							show.append('[');
+							first = false;
+						} else show.append(", ");
+						formatItem(show,stack);
+					}
+					show.append(']');
+				} else if(recipe instanceof ShapedRecipe) {
+					ShapedRecipe shaped = (ShapedRecipe)recipe;
+					show.append(Arrays.asList(shaped.getShape())).append(" -- ");
+					Map<Character,ItemStack> ingred = shaped.getIngredientMap();
+					boolean first = true;
+					for(char c : ingred.keySet()) {
+						if(first) {
+							show.append('{');
+							first = false;
+						} else show.append(", ");
+						show.append(c).append('=');
+						formatItem(show,ingred.get(c));
+					}
+					show.append('}');
 				}
-				show.append(']');
-			} else if(recipe instanceof ShapedRecipe) {
-				ShapedRecipe shaped = (ShapedRecipe)recipe;
-				show.append(Arrays.asList(shaped.getShape())).append(" -- ");
-				Map<Character,ItemStack> ingred = shaped.getIngredientMap();
-				boolean first = true;
-				for(char c : ingred.keySet()) {
-					if(first) {
-						show.append('{');
-						first = false;
-					} else show.append(", ");
-					show.append(c).append('=');
-					formatItem(show,ingred.get(c));
+				ItemStack result = recipe.getResult();
+				show.append(" -> ");
+				formatItem(show,result);
+				if(!result.getEnchantments().isEmpty()) {
+					show.append(" -- ");
+					for(Enchantment ench : result.getEnchantments().keySet()) {
+						formatEnchant(show,ench).append('=').append(result.getEnchantmentLevel(ench));
+					}
 				}
-				show.append('}');
-			}
-			ItemStack result = recipe.getResult();
-			show.append(" -> ");
-			formatItem(show,result);
-			if(!result.getEnchantments().isEmpty()) {
-				show.append(" -- ");
-				for(Enchantment ench : result.getEnchantments().keySet()) {
-					formatEnchant(show,ench).append('=').append(result.getEnchantmentLevel(ench));
-				}
-			}
-			show.append(')');
-			debug("Loaded " + show);
+				show.append(')');
+				debug("Loaded " + show);
 		}
 	}
-	
+
 	private StringBuilder formatItem(StringBuilder show, ItemStack stack) {
 		if(stack == null) return show.append("null");
 		return show.append("ItemStack{").append(stack.getType().toString()).append('/')
