@@ -33,6 +33,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -114,20 +115,53 @@ public class Cookbook extends JavaPlugin implements Listener {
 	public void onCraft(final InventoryClickEvent evt) { // TODO: Change to CraftItemEvent
 		if(!(evt.getInventory() instanceof CraftingInventory)) return; // TODO: This line won't be needed
 		if(evt.getRawSlot() != 0) return; // TODO: This line won't be needed
-		boolean scheduleUpdate = false;
+		boolean scheduleUpdate = false, scheduleFix = false;
 		final CraftingInventory inven = (CraftingInventory)evt.getInventory();
 		debug("Contains potion? " + (inven.contains(Material.POTION) || inven.contains(Material.EXP_BOTTLE)));
 		debug("Contains soup? " + inven.contains(Material.MUSHROOM_SOUP));
+		debug("Contains bucket? " + containsBucket(inven));
 		debug("Shift click? " + evt.isShiftClick());
 		for(ItemStack item : inven.getMatrix()) {
 			debug(String.valueOf(item));
 		}
 		if(Options.FIX_GLASS_BOTTLE.get() && (inven.contains(Material.POTION) || inven.contains(Material.EXP_BOTTLE)))
-			scheduleUpdate = true;
+			scheduleFix = scheduleUpdate = true;
 		else if(Options.FIX_SOUP_BOWL.get() && inven.contains(Material.MUSHROOM_SOUP))
-			scheduleUpdate = true;
+			scheduleFix = scheduleUpdate = true;
+		else if(Options.FIX_BUCKETS.get() && containsBucket(inven))
+			scheduleFix = scheduleUpdate = true;
 		else if(evt.isShiftClick()) scheduleUpdate = true;
+		scheduleFix = scheduleFix && Options.FIX_BUCKETS.get();
 		scheduleUpdate = scheduleUpdate && evt.getWhoClicked() instanceof Player;
+		if(scheduleFix) {
+			final int slot = evt.getWhoClicked().getInventory().firstEmpty();
+			final ItemStack[] contents = inven.getMatrix();
+			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+				@Override public void run() {
+					PlayerInventory pack = evt.getWhoClicked().getInventory();
+					for(int i = slot; i >= 0 && i < pack.getSize() && pack.getItem(i) != null; i++) {
+						ItemStack inPack = pack.getItem(i);
+						int id = inPack.getTypeId();
+							debug("Comparing " + inPack + " in the pack to...");
+						for(int j = 0; j < contents.length; j++) {
+							if(contents[j] == null) continue;
+							debug("..." + contents[j] + " in the matrix...");
+							Item item = Item.byId[contents[j].getTypeId()];
+							if(item != null && item.k() && item.j().id == id && contents[j].getAmount() == 1) {
+								debug("Moving a " + Material.getMaterial(id) + "!");
+								ItemStack replace = new ItemStack(item.j().id, 1);
+								contents[j] = null; // TODO: Should assign replace rather than null...
+								inven.setItem(j + 1, replace);
+								inPack.setAmount(inPack.getAmount() - 1);
+								if(inPack.getAmount() == 0) pack.setItem(i, null);
+								else i--;
+								break;
+							}
+						}
+					}
+				}
+			});
+		}
 		if(scheduleUpdate) {
 			debug("Scheduling an inventory update for " + evt.getWhoClicked().getName() + "!");
 			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
@@ -136,6 +170,10 @@ public class Cookbook extends JavaPlugin implements Listener {
 				}
 			}, 1);
 		}
+	}
+
+	private boolean containsBucket(CraftingInventory i) {
+		return i.contains(Material.WATER_BUCKET) || i.contains(Material.LAVA_BUCKET) || i.contains(Material.MILK_BUCKET);
 	}
 
 	public static void info(String string) {
