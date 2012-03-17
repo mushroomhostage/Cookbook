@@ -275,8 +275,7 @@ AIR IRON_INGOT  AIR
 PAPER PAPER PAPER
 PAPER COMPASS PAPER
 PAPER PAPER PAPER
--> 1x MAP/65347
-#I Believe this will trigger the next highest map rule build in to MC. Up to the limit. This is what happens when you spawn a number higher than the highest.
+-> 1x MAP
 
 @Shaped Clock
 AIR GOLD_INGOT  AIR
