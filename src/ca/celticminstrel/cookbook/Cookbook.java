@@ -50,6 +50,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 	private Pattern stripComments = Pattern.compile("([^#]*)#.*");
 	private Pattern furnacePat = Pattern.compile("\\s*([a-zA-Z0-9_-]+)\\s+->\\s+([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*(.*)");
 	private Pattern resultPat = Pattern.compile("\\s*->\\s*([0-9]+)[x\\s]\\s*([a-zA-Z0-9_/-]+)\\s*(.*)");
+	private List<String> files = new ArrayList<String>();
 	private static Cookbook plugin;
 	
 	@Override
@@ -72,7 +73,10 @@ public class Cookbook extends JavaPlugin implements Listener {
 			}
 		}
 		Option.setConfiguration(config);
-		loadRecipes();
+		resetOrClear();
+		File recipes = new File(getDataFolder(),config.getString("recipefile", "recipes.cb"));
+		loadRecipes(recipes);
+		showRecipes();
 		PluginManager pm = getServer().getPluginManager();
 		// TODO: Uncomment this line
 		//pm.registerEvents(new WindowListener(this), this);
@@ -188,9 +192,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 		if(Options.DEBUG.get()) log.info("[DEBUG] " + string);
 	}
 	
-	private void loadRecipes() {
-		resetOrClear();
-		File recipes = new File(getDataFolder(),config.getString("recipefile", "recipes.cb"));
+	private void loadRecipes(File recipes) {
 		String prefix = "Loading " + recipes.getName() + ": ";
 		try {
 			Scanner in = new Scanner(recipes);
@@ -219,13 +221,20 @@ public class Cookbook extends JavaPlugin implements Listener {
 				if(directive.equalsIgnoreCase("@Smelt")) loadSmelting(iter, prefix, name);
 				else if(directive.equalsIgnoreCase("@Shaped")) loadShaped(iter, prefix, name);
 				else if(directive.equalsIgnoreCase("@Shapeless")) loadShapeless(iter, prefix, name);
+				else if(directive.equals("@Include")) loadInclude(iter, prefix, name);
 				else warning(prefix + "Invalid directive " + directive + " on line " + iter.nextIndex() + ".");
 			}
 		} catch(FileNotFoundException e) {}
+	}
+	
+	private void showRecipes() {
 		info("Loaded " + newRecipes.size() + " custom recipes.");
-		for(Recipe recipe : newRecipes.values()) {
+		for(Entry<String,Recipe> entry : newRecipes.entrySet()) {
+			Recipe recipe = entry.getValue();
 			StringBuilder show = new StringBuilder();
-			show.append(recipe.getClass().getSimpleName()).append("(");
+			show.append(recipe.getClass().getSimpleName()).append("(").append(entry.getKey());
+			if(Options.DEBUG.get()) {
+				show.append('=');
 				if(recipe instanceof FurnaceRecipe) {
 					formatItem(show,((FurnaceRecipe)recipe).getInput());
 				} else if(recipe instanceof ShapelessRecipe) {
@@ -265,7 +274,29 @@ public class Cookbook extends JavaPlugin implements Listener {
 				}
 				show.append(')');
 				debug("Loaded " + show);
+			} else {
+				show.append(')');
+				getLogger().info(show.toString());
+			}
 		}
+	}
+	
+	private void loadInclude(ListIterator<String> iter, String prefix, String name) {
+		if(name.isEmpty()) {
+			warning(prefix + "Invalid include directive on line " + iter.previousIndex() + "; no file specified.");
+			return;
+		}
+		if(files.contains(name)) {
+			warning(prefix + "Include loop detected on line " + iter.previousIndex() + "; skipping!");
+			return;
+		}
+		files.add(name);
+		File file = new File(getDataFolder(), name);
+		if(!file.exists()) {
+			warning(prefix + "Couldn't find include file on line " + iter.previousIndex() + "!");
+			return;
+		}
+		loadRecipes(file);
 	}
 
 	private StringBuilder formatItem(StringBuilder show, ItemStack stack) {
@@ -554,6 +585,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 	}
 
 	private void resetOrClear() {
+		files.clear();
 		newRecipes.clear();
 		InitMethod init = InitMethod.RESET;
 		try {
