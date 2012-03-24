@@ -524,7 +524,7 @@ public class Cookbook extends JavaPlugin implements Listener {
 				warning(prefix + "Unknown enchantment " + split[0] + " on line " + lineno + "; skipping.");
 				continue;
 			}
-			if(!enchantment.canEnchantItem(result)) {
+			if(getConfig().getBoolean("checkEnchants", true) && !enchantment.canEnchantItem(result)) {
 				warning(prefix + "Invalid or conflicting enchantment " + split[0] + " for material " + material +
 					" on line " + lineno + "; skipping.");
 				continue;
@@ -536,10 +536,14 @@ public class Cookbook extends JavaPlugin implements Listener {
 				else warning(prefix + "Invalid enchantment level " + split[1] + " on line " + lineno +
 					"; defaulting to 1.");
 			}
-			if(level > enchantment.getMaxLevel())
+			if(getConfig().getBoolean("checkEnchants", true) && level > enchantment.getMaxLevel())
 				warning(prefix + "Enchantment level " + level + " too high for enchantment " + split[0] +
 					" on line " + lineno + "; defaulting to maximum (" + (level = enchantment.getMaxLevel()) + ").");
-			result.addEnchantment(enchantment, level);
+			if (getConfig().getBoolean("checkEnchants", true)) {
+                result.addEnchantment(enchantment, level);
+            } else {
+                result.addUnsafeEnchantment(enchantment, level);
+            }
 		}
 		debug("Have enchanted result? " + result.getEnchantments());
 		return result;
