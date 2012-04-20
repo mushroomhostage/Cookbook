@@ -1,6 +1,6 @@
 name: Cookbook
 main: ca.celticminstrel.cookbook.Cookbook
-version: 1.0.1
+version: 1.0.1-exphc
 author: Celtic Minstrel
 permissions:
   cookbook.view:
