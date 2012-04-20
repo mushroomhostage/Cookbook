@@ -10,155 +10,156 @@ diamond stick AIR
 
 # Example for SilkSpawners, alternate mob spawner crafting (disable craftableSpawners)
 # see http://dev.bukkit.org/server-mods/silkspawners/
+
 @Shaped
 monster_egg/50 diamond monster_egg/50
 diamond monster_egg/50 diamond
 monster_egg/50 diamond monster_egg/50
--> 1 MOB_SPAWNER/50
+-> 1 MOB_SPAWNER/50 SILK_TOUCH=50
 
 @Shaped
 monster_egg/51 diamond monster_egg/51
 diamond monster_egg/51 diamond
 monster_egg/51 diamond monster_egg/51
--> 1 MOB_SPAWNER/51
+-> 1 MOB_SPAWNER/51 SILK_TOUCH=51
 
 @Shaped
 monster_egg/52 diamond monster_egg/52
 diamond monster_egg/52 diamond
 monster_egg/52 diamond monster_egg/52
--> 1 MOB_SPAWNER/52
+-> 1 MOB_SPAWNER/52 SILK_TOUCH=52
 
 @Shaped
 monster_egg/53 diamond monster_egg/53
 diamond monster_egg/53 diamond
 monster_egg/53 diamond monster_egg/53
--> 1 MOB_SPAWNER/53
+-> 1 MOB_SPAWNER/53 SILK_TOUCH=53
 
 @Shaped
 monster_egg/54 diamond monster_egg/54
 diamond monster_egg/54 diamond
 monster_egg/54 diamond monster_egg/54
--> 1 MOB_SPAWNER/54
+-> 1 MOB_SPAWNER/54 SILK_TOUCH=54
 
 @Shaped
 monster_egg/55 diamond monster_egg/55
 diamond monster_egg/55 diamond
 monster_egg/55 diamond monster_egg/55
--> 1 MOB_SPAWNER/55
+-> 1 MOB_SPAWNER/55 SILK_TOUCH=55
 
 @Shaped
 monster_egg/56 diamond monster_egg/56
 diamond monster_egg/56 diamond
 monster_egg/56 diamond monster_egg/56
--> 1 MOB_SPAWNER/56
+-> 1 MOB_SPAWNER/56 SILK_TOUCH=56
 
 @Shaped
 monster_egg/57 diamond monster_egg/57
 diamond monster_egg/57 diamond
 monster_egg/57 diamond monster_egg/57
--> 1 MOB_SPAWNER/57
+-> 1 MOB_SPAWNER/57 SILK_TOUCH=57
 
 @Shaped
 monster_egg/58 diamond monster_egg/58
 diamond monster_egg/58 diamond
 monster_egg/58 diamond monster_egg/58
--> 1 MOB_SPAWNER/58
+-> 1 MOB_SPAWNER/58 SILK_TOUCH=58
 
 @Shaped
 monster_egg/59 diamond monster_egg/59
 diamond monster_egg/59 diamond
 monster_egg/59 diamond monster_egg/59
--> 1 MOB_SPAWNER/59
+-> 1 MOB_SPAWNER/59 SILK_TOUCH=59
 
 @Shaped
 monster_egg/60 diamond monster_egg/60
 diamond monster_egg/60 diamond
 monster_egg/60 diamond monster_egg/60
--> 1 MOB_SPAWNER/60
+-> 1 MOB_SPAWNER/60 SILK_TOUCH=60
 
 @Shaped
 monster_egg/61 diamond monster_egg/61
 diamond monster_egg/61 diamond
 monster_egg/61 diamond monster_egg/61
--> 1 MOB_SPAWNER/61
+-> 1 MOB_SPAWNER/61 SILK_TOUCH=61
 
 @Shaped
 monster_egg/62 diamond monster_egg/62
 diamond monster_egg/62 diamond
 monster_egg/62 diamond monster_egg/62
--> 1 MOB_SPAWNER/62
+-> 1 MOB_SPAWNER/62 SILK_TOUCH=62
 
 @Shaped
 monster_egg/63 diamond monster_egg/63
 diamond monster_egg/63 diamond
 monster_egg/63 diamond monster_egg/63
--> 1 MOB_SPAWNER/63
+-> 1 MOB_SPAWNER/63 SILK_TOUCH=63
 
 @Shaped
 monster_egg/90 diamond monster_egg/90
 diamond monster_egg/90 diamond
 monster_egg/90 diamond monster_egg/90
--> 1 MOB_SPAWNER/90
+-> 1 MOB_SPAWNER/90 SILK_TOUCH=90
 
 @Shaped
 monster_egg/91 diamond monster_egg/91
 diamond monster_egg/91 diamond
 monster_egg/91 diamond monster_egg/91
--> 1 MOB_SPAWNER/91
+-> 1 MOB_SPAWNER/91 SILK_TOUCH=91
 
 @Shaped
 monster_egg/92 diamond monster_egg/92
 diamond monster_egg/92 diamond
 monster_egg/92 diamond monster_egg/92
--> 1 MOB_SPAWNER/92
+-> 1 MOB_SPAWNER/92 SILK_TOUCH=92
 
 @Shaped
 monster_egg/93 diamond monster_egg/93
 diamond monster_egg/93 diamond
 monster_egg/93 diamond monster_egg/93
--> 1 MOB_SPAWNER/93
+-> 1 MOB_SPAWNER/93 SILK_TOUCH=93
 
 @Shaped
 monster_egg/94 diamond monster_egg/94
 diamond monster_egg/94 diamond
 monster_egg/94 diamond monster_egg/94
--> 1 MOB_SPAWNER/94
+-> 1 MOB_SPAWNER/94 SILK_TOUCH=94
 
 @Shaped
 monster_egg/95 diamond monster_egg/95
 diamond monster_egg/95 diamond
 monster_egg/95 diamond monster_egg/95
--> 1 MOB_SPAWNER/95
+-> 1 MOB_SPAWNER/95 SILK_TOUCH=95
 
 @Shaped
 monster_egg/96 diamond monster_egg/96
 diamond monster_egg/96 diamond
 monster_egg/96 diamond monster_egg/96
--> 1 MOB_SPAWNER/96
+-> 1 MOB_SPAWNER/96 SILK_TOUCH=96
 
 @Shaped
 monster_egg/97 diamond monster_egg/97
 diamond monster_egg/97 diamond
 monster_egg/97 diamond monster_egg/97
--> 1 MOB_SPAWNER/97
+-> 1 MOB_SPAWNER/97 SILK_TOUCH=97
 
 @Shaped
 monster_egg/98 diamond monster_egg/98
 diamond monster_egg/98 diamond
 monster_egg/98 diamond monster_egg/98
--> 1 MOB_SPAWNER/98
+-> 1 MOB_SPAWNER/98 SILK_TOUCH=98
 
 @Shaped
 monster_egg/99 diamond monster_egg/99
 diamond monster_egg/99 diamond
 monster_egg/99 diamond monster_egg/99
--> 1 MOB_SPAWNER/99
+-> 1 MOB_SPAWNER/99 SILK_TOUCH=99
 
 @Shaped
 monster_egg/120 diamond monster_egg/120
 diamond monster_egg/120 diamond
 monster_egg/120 diamond monster_egg/120
--> 1 MOB_SPAWNER/120
+-> 1 MOB_SPAWNER/120 SILK_TOUCH=120
 
 
 # Rename me to recipes.cb, otherwise Cookbook won't read me
