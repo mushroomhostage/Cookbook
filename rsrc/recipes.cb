@@ -1,0 +1,23 @@
+# Example for EnchantMore http://dev.bukkit.org/server-mods/enchantmore/
+# see:
+# http://dev.bukkit.org/server-mods/cookbook/tickets/13-option-to-allow-unsafe-non-standard-item-enchantments/
+@Shaped  
+diamond diamond diamond
+diamond stick AIR
+diamond stick AIR
+-> 1 GOLD_AXE ARROW_DAMAGE=1
+
+# Rename me to recipes.cb, otherwise Cookbook won't read me
+#@Shaped  # Make an iron bar!
+#dirt dirt
+#AIR dirt #Whee!
+#-> 2x IRON_INGOT
+#
+#@Smelt
+#Dirt -> 3x Wheat
+#
+#@Shapeless
+#Apple, Bowl
+#-> 1x Water-bucket
+#
+
